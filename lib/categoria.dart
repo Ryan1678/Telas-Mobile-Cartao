@@ -3,7 +3,6 @@ import 'salgados.dart';
 import 'bebidas.dart';
 import 'doces.dart';
 import 'sorvetes.dart';
-
 import 'carrinho.dart';
 import 'perfil.dart';
 
@@ -13,7 +12,6 @@ class CategoriasScreen extends StatelessWidget {
   void _onTap(BuildContext context, int index) {
     switch (index) {
       case 0:
-        // Estamos aqui, não faz nada
         break;
       case 1:
         Navigator.pushReplacement(
@@ -33,88 +31,84 @@ class CategoriasScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: Colors.white,
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32),
-                child: Center(
-                  child: Text(
-                    'Categorias',  // Título alterado para Menu
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.pink.shade400, // Texto rosinha simples
-                      letterSpacing: 1.2,
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(top: 32, left: 24),
+              child: Text(
+                'Categorias',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.pink,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 22,
+                  crossAxisSpacing: 22,
+                  children: [
+                    CategoriaCard(
+                      image: 'assets/images/Chips.jpg',
+                      title: 'Salgados',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SalgadosScreen(),
+                          ),
+                        );
+                      },
                     ),
-                    textAlign: TextAlign.center,
-                  ),
+                    CategoriaCard(
+                      image: 'assets/images/doces.jpg',
+                      title: 'Doces',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const DocesScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    CategoriaCard(
+                      image: 'assets/images/bebida.png',
+                      title: 'Bebidas',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const BebidasScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    CategoriaCard(
+                      image: 'assets/images/picoles.jpg',
+                      title: 'Sorvetes',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SorvetesScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 22,
-                    crossAxisSpacing: 22,
-                    children: [
-                      CategoriaCard(
-                        image: 'assets/images/Chips.jpg',
-                        title: 'Salgados',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const SalgadosScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      CategoriaCard(
-                        image: 'assets/images/doces.jpg',
-                        title: 'Doces',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const DocesScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      CategoriaCard(
-                        image: 'assets/images/bebida.png',
-                        title: 'Bebidas',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const BebidasScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      CategoriaCard(
-                        image: 'assets/images/picoles.jpg',
-                        title: 'Sorvetes',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const SorvetesScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       bottomNavigationBar: MyBottomNavigationBar(
@@ -125,7 +119,7 @@ class CategoriasScreen extends StatelessWidget {
   }
 }
 
-class CategoriaCard extends StatefulWidget {
+class CategoriaCard extends StatelessWidget {
   final String image;
   final String title;
   final VoidCallback? onTap;
@@ -138,78 +132,58 @@ class CategoriaCard extends StatefulWidget {
   });
 
   @override
-  State<CategoriaCard> createState() => _CategoriaCardState();
-}
-
-class _CategoriaCardState extends State<CategoriaCard>
-    with SingleTickerProviderStateMixin {
-  bool _pressed = false;
-
-  void _onTapDown(TapDownDetails details) {
-    setState(() {
-      _pressed = true;
-    });
-  }
-
-  void _onTapUp(TapUpDetails details) {
-    setState(() {
-      _pressed = false;
-    });
-  }
-
-  void _onTapCancel() {
-    setState(() {
-      _pressed = false;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: widget.onTap,
-      onTapDown: _onTapDown,
-      onTapUp: _onTapUp,
-      onTapCancel: _onTapCancel,
-      child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 18),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(40),
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade300),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade200,
+              blurRadius: 10,
+              spreadRadius: 2,
+              offset: const Offset(2, 2),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(12), // Menor padding para mais espaço útil
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
-                  widget.image,
-                  height: 84,
-                  width: 84,
+                  image,
+                  height: 72, // Tamanho reduzido
+                  width: 72,
                   fit: BoxFit.cover,
                 ),
               ),
-              const SizedBox(height: 18),
-              Text(
-                widget.title,
-                style: TextStyle(
-                  fontSize: 23,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.pink.shade400, // texto rosinha simples no card
-                  letterSpacing: 0.8,
+            ),
+            const SizedBox(height: 12), // Menor espaçamento entre imagem e texto
+            Padding(
+              padding: const EdgeInsets.only(left: 4), // Pequeno espaçamento à esquerda
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF002147), // Azul marinho
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
 
 class MyBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -228,7 +202,14 @@ class MyBottomNavigationBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
-        boxShadow: const [],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: const Offset(2, 2),
+          ),
+        ],
       ),
       child: BottomNavigationBar(
         selectedItemColor: Colors.pinkAccent.shade400,

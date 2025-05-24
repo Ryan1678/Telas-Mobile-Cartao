@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-
 import 'carrinho.dart';
 import 'categoria.dart';
+import 'main.dart';
+import 'pedidos.dart';
+import 'adicionar_cartao.dart';
+import 'carteira.dart';
 
 class PerfilScreen extends StatelessWidget {
   const PerfilScreen({super.key});
@@ -34,27 +37,27 @@ class PerfilScreen extends StatelessWidget {
   }) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      elevation: 5,
+      margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
           child: Row(
             children: [
-              Icon(icon, color: Colors.pink.shade400, size: 28),
+              Icon(icon, color: Colors.pink.shade400, size: 30),
               const SizedBox(width: 20),
               Expanded(
                 child: Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 21,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              const Icon(Icons.chevron_right, color: Colors.grey),
+              const Icon(Icons.chevron_right, color: Colors.grey, size: 24),
             ],
           ),
         ),
@@ -65,10 +68,15 @@ class PerfilScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade50,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Perfil'),
-        backgroundColor: Colors.pink.shade400,
+        title: const Text(
+          'Perfil',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.pink.shade400),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -88,24 +96,49 @@ class PerfilScreen extends StatelessWidget {
               icon: Icons.list_alt,
               title: 'Meus Pedidos',
               onTap: () {
-                print('Meus Pedidos clicado');
-                // Pode abrir outra tela aqui
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PedidosScreen()),
+                );
               },
             ),
+
             _buildPerfilItem(
               context: context,
               icon: Icons.account_balance_wallet,
               title: 'Minha Carteira',
               onTap: () {
-                print('Minha Carteira clicado');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CarteiraScreen()),
+                );
               },
             ),
+
             _buildPerfilItem(
               context: context,
               icon: Icons.credit_card,
               title: 'Adicionar Cartão',
               onTap: () {
-                print('Adicionar Cartão clicado');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AdicionarCartaoScreen(),
+                  ),
+                );
+              },
+            ),
+
+            _buildPerfilItem(
+              context: context,
+              icon: Icons.logout,
+              title: 'Fazer Logoff',
+              onTap: () {
+                print('Usuário fez logoff');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const FiebTechApp()),
+                );
               },
             ),
           ],
