@@ -5,6 +5,7 @@ import 'main.dart';
 import 'pedidos.dart';
 import 'adicionar_cartao.dart';
 import 'carteira.dart';
+import 'termos_uso.dart';
 
 class PerfilScreen extends StatelessWidget {
   const PerfilScreen({super.key});
@@ -125,6 +126,18 @@ class PerfilScreen extends StatelessWidget {
                   MaterialPageRoute(
                     builder: (_) => const AdicionarCartaoScreen(),
                   ),
+                );
+              },
+            ),
+
+            _buildPerfilItem(
+              context: context,
+              icon: Icons.description_outlined,
+              title: 'Termos de Uso',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TermosUsoScreen()),
                 );
               },
             ),
