@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'cadastro.dart';
-import 'esqueceusenha.dart';  // IMPORTAÇÃO NOVA
+import 'esqueceusenha.dart';
+import 'Apresentação.dart'; // <-- Adiciona isso
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -58,7 +59,10 @@ class LoginScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () {
-                        // Ação de login aqui
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const PresentationScreen()),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.pinkAccent,
