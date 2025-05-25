@@ -98,7 +98,7 @@ class AdicionarCartaoScreen extends StatelessWidget {
                 },
                 child: const Text(
                   'Salvar Cartão',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               )
             ],

@@ -11,24 +11,37 @@ class CadastroScreen extends StatefulWidget {
 class _CadastroScreenState extends State<CadastroScreen> {
   final TextEditingController nomeController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController rmController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
-  String errorMessage = '';
+  String? escolaSelecionada;
+  String? anoSelecionado;
+
+  final List<String> escolas = [
+    'ITB Brasílio Flores de Azevedo',
+    'ITB Prof.ª Maria Sylvia Chaluppe Mello',
+    'ITB Professor Moacyr Domingos Savio',
+    'ITB Professor Munir José',
+  ];
+
+  final List<String> anos = [
+    '1º ano do Ensino Médio',
+    '2º ano do Ensino Médio',
+    '3º ano do Ensino Médio',
+  ];
 
   void handleCadastro() {
-    final nome = nomeController.text.trim();
-    final email = emailController.text.trim();
-    final senha = senhaController.text.trim();
+    if (!_formKey.currentState!.validate()) return;
 
-    if (nome.isEmpty || email.isEmpty || senha.isEmpty) {
-      setState(() {
-        errorMessage = 'Preencha todos os campos.';
-      });
+    if (escolaSelecionada == null || anoSelecionado == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecione a escola e o ano escolar.')),
+      );
       return;
     }
 
-    // Lógica para cadastro (ex: Firebase)
+    // Lógica de cadastro
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Cadastro realizado com sucesso!')),
     );
@@ -75,41 +88,128 @@ class _CadastroScreenState extends State<CadastroScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const Text('Nome completo', style: TextStyle(fontWeight: FontWeight.bold)),
-                      TextField(
+                      TextFormField(
                         controller: nomeController,
                         decoration: const InputDecoration(
                           hintText: 'João da Silva',
                           border: UnderlineInputBorder(),
                         ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Informe seu nome completo';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
+
                       const Text('Email', style: TextStyle(fontWeight: FontWeight.bold)),
-                      TextField(
+                      TextFormField(
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
                           hintText: 'email@gmail.com',
                           border: UnderlineInputBorder(),
                         ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Informe um e-mail';
+                          }
+                          final emailRegex = RegExp(r'^[\w\.-]+@[\w\.-]+\.\w+$');
+                          if (!emailRegex.hasMatch(value)) {
+                            return 'E-mail inválido';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
+
+                      const Text('RM', style: TextStyle(fontWeight: FontWeight.bold)),
+                      TextFormField(
+                        controller: rmController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          hintText: '123456',
+                          border: UnderlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Informe o RM';
+                          }
+                          if (!RegExp(r'^\d+$').hasMatch(value)) {
+                            return 'O RM deve conter apenas números';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text('Escola', style: TextStyle(fontWeight: FontWeight.bold)),
+                      DropdownButtonFormField<String>(
+                        value: escolaSelecionada,
+                        items: escolas
+                            .map((escola) => DropdownMenuItem(
+                                  value: escola,
+                                  child: Text(escola),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            escolaSelecionada = value;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          border: UnderlineInputBorder(),
+                          hintText: 'Selecione sua escola',
+                        ),
+                        validator: (value) =>
+                            value == null ? 'Selecione uma escola' : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text('Ano escolar', style: TextStyle(fontWeight: FontWeight.bold)),
+                      DropdownButtonFormField<String>(
+                        value: anoSelecionado,
+                        items: anos
+                            .map((ano) => DropdownMenuItem(
+                                  value: ano,
+                                  child: Text(ano),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            anoSelecionado = value;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          border: UnderlineInputBorder(),
+                          hintText: 'Selecione o ano',
+                        ),
+                        validator: (value) =>
+                            value == null ? 'Selecione o ano escolar' : null,
+                      ),
+                      const SizedBox(height: 16),
+
                       const Text('Senha', style: TextStyle(fontWeight: FontWeight.bold)),
-                      TextField(
+                      TextFormField(
                         controller: senhaController,
                         obscureText: true,
                         decoration: const InputDecoration(
                           hintText: '************',
                           border: UnderlineInputBorder(),
                         ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Informe uma senha';
+                          }
+                          if (value.length < 6) {
+                            return 'A senha deve ter no mínimo 6 caracteres';
+                          }
+                          return null;
+                        },
                       ),
-                      const SizedBox(height: 16),
-                      if (errorMessage.isNotEmpty)
-                        Text(
-                          errorMessage,
-                          style: const TextStyle(color: Colors.red),
-                          textAlign: TextAlign.center,
-                        ),
                       const SizedBox(height: 24),
+
                       ElevatedButton(
                         onPressed: handleCadastro,
                         style: ElevatedButton.styleFrom(
@@ -122,6 +222,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
                         child: const Text('Cadastrar', style: TextStyle(color: Colors.white)),
                       ),
                       const SizedBox(height: 16),
+
                       Center(
                         child: TextButton(
                           onPressed: () {

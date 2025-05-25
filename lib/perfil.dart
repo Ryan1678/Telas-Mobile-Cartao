@@ -6,6 +6,7 @@ import 'pedidos.dart';
 import 'adicionar_cartao.dart';
 import 'carteira.dart';
 import 'termos_uso.dart';
+import 'configurações.dart';
 
 class PerfilScreen extends StatelessWidget {
   const PerfilScreen({super.key});
@@ -94,6 +95,17 @@ class PerfilScreen extends StatelessWidget {
           children: [
             _buildPerfilItem(
               context: context,
+              icon: Icons.settings,
+              title: 'Configurações do perfil',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ConfiguracoesPerfilScreen()),
+                );
+              },
+            ),
+            _buildPerfilItem(
+              context: context,
               icon: Icons.list_alt,
               title: 'Meus Pedidos',
               onTap: () {
@@ -103,7 +115,6 @@ class PerfilScreen extends StatelessWidget {
                 );
               },
             ),
-
             _buildPerfilItem(
               context: context,
               icon: Icons.account_balance_wallet,
@@ -115,7 +126,6 @@ class PerfilScreen extends StatelessWidget {
                 );
               },
             ),
-
             _buildPerfilItem(
               context: context,
               icon: Icons.credit_card,
@@ -123,13 +133,10 @@ class PerfilScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const AdicionarCartaoScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const AdicionarCartaoScreen()),
                 );
               },
             ),
-
             _buildPerfilItem(
               context: context,
               icon: Icons.description_outlined,
@@ -141,7 +148,6 @@ class PerfilScreen extends StatelessWidget {
                 );
               },
             ),
-
             _buildPerfilItem(
               context: context,
               icon: Icons.logout,
