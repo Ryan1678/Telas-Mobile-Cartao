@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'carrinho.dart';
-import 'categoria.dart';
 import 'main.dart';
-import 'pedidos.dart';
-import 'adicionar_cartao.dart';
 import 'carteira.dart';
 import 'termos_uso.dart';
 import 'configurações.dart';
+import 'cartao_virtual.dart';
+import 'solicitarRecarga.dart';
+import 'faleconosco.dart';
 
 class PerfilScreen extends StatelessWidget {
   const PerfilScreen({super.key});
@@ -16,13 +15,13 @@ class PerfilScreen extends StatelessWidget {
       Widget screen;
       switch (index) {
         case 0:
-          screen = const CategoriasScreen();
+          screen = const CartaoVirtualScreen();
           break;
         case 1:
-          screen = const CarrinhoScreen();
+          screen = const SolicitarRecargaScreen();
           break;
         default:
-          screen = const CategoriasScreen();
+          screen = const CartaoVirtualScreen();
       }
       Navigator.pushReplacement(
         context,
@@ -84,7 +83,7 @@ class PerfilScreen extends StatelessWidget {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const CategoriasScreen()),
+              MaterialPageRoute(builder: (_) => const CartaoVirtualScreen()),
             );
           },
         ),
@@ -106,17 +105,6 @@ class PerfilScreen extends StatelessWidget {
             ),
             _buildPerfilItem(
               context: context,
-              icon: Icons.list_alt,
-              title: 'Meus Pedidos',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PedidosScreen()),
-                );
-              },
-            ),
-            _buildPerfilItem(
-              context: context,
               icon: Icons.account_balance_wallet,
               title: 'Minha Carteira',
               onTap: () {
@@ -128,23 +116,23 @@ class PerfilScreen extends StatelessWidget {
             ),
             _buildPerfilItem(
               context: context,
-              icon: Icons.credit_card,
-              title: 'Adicionar Cartão',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdicionarCartaoScreen()),
-                );
-              },
-            ),
-            _buildPerfilItem(
-              context: context,
               icon: Icons.description_outlined,
               title: 'Termos de Uso',
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const TermosUsoScreen()),
+                );
+              },
+            ),
+            _buildPerfilItem(
+              context: context,
+              icon: Icons.support_agent,
+              title: 'Fale Conosco',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const FaleConoscoScreen()),
                 );
               },
             ),

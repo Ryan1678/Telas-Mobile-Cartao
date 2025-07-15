@@ -9,39 +9,20 @@ class CadastroScreen extends StatefulWidget {
 }
 
 class _CadastroScreenState extends State<CadastroScreen> {
-  final TextEditingController nomeController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController rmController = TextEditingController();
-  final TextEditingController senhaController = TextEditingController();
-
   final _formKey = GlobalKey<FormState>();
-  String? escolaSelecionada;
-  String? anoSelecionado;
 
-  final List<String> escolas = [
-    'ITB Brasílio Flores de Azevedo',
-    'ITB Prof.ª Maria Sylvia Chaluppe Mello',
-    'ITB Professor Moacyr Domingos Savio',
-    'ITB Professor Munir José',
-  ];
+  final nomeController = TextEditingController();
+  final emailController = TextEditingController();
+  final senhaController = TextEditingController();
+  final dataNascimentoController = TextEditingController();
+  final rmController = TextEditingController();
+  final telefoneController = TextEditingController();
 
-  final List<String> anos = [
-    '1º ano do Ensino Médio',
-    '2º ano do Ensino Médio',
-    '3º ano do Ensino Médio',
-  ];
+  bool _obscureSenha = true;
 
   void handleCadastro() {
     if (!_formKey.currentState!.validate()) return;
 
-    if (escolaSelecionada == null || anoSelecionado == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione a escola e o ano escolar.')),
-      );
-      return;
-    }
-
-    // Lógica de cadastro
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Cadastro realizado com sucesso!')),
     );
@@ -50,6 +31,22 @@ class _CadastroScreenState extends State<CadastroScreen> {
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime(2005, 1, 1),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        dataNascimentoController.text = "${picked.day.toString().padLeft(2, '0')}/"
+            "${picked.month.toString().padLeft(2, '0')}/"
+            "${picked.year}";
+      });
+    }
   }
 
   @override
@@ -103,21 +100,65 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      const Text('Email', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('E-mail', style: TextStyle(fontWeight: FontWeight.bold)),
                       TextFormField(
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
-                          hintText: 'email@gmail.com',
+                          hintText: 'exemplo@email.com',
                           border: UnderlineInputBorder(),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Informe um e-mail';
+                            return 'Informe seu e-mail';
                           }
-                          final emailRegex = RegExp(r'^[\w\.-]+@[\w\.-]+\.\w+$');
-                          if (!emailRegex.hasMatch(value)) {
+                          if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,4}$').hasMatch(value)) {
                             return 'E-mail inválido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text('Senha', style: TextStyle(fontWeight: FontWeight.bold)),
+                      TextFormField(
+                        controller: senhaController,
+                        obscureText: _obscureSenha,
+                        decoration: InputDecoration(
+                          hintText: 'Digite sua senha',
+                          border: const UnderlineInputBorder(),
+                          suffixIcon: IconButton(
+                            icon: Icon(_obscureSenha ? Icons.visibility_off : Icons.visibility),
+                            onPressed: () {
+                              setState(() => _obscureSenha = !_obscureSenha);
+                            },
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Informe sua senha';
+                          }
+                          if (value.length < 6) {
+                            return 'A senha deve ter no mínimo 6 caracteres';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text('Data de nascimento', style: TextStyle(fontWeight: FontWeight.bold)),
+                      TextFormField(
+                        controller: dataNascimentoController,
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          hintText: 'DD/MM/AAAA',
+                          border: UnderlineInputBorder(),
+                          suffixIcon: Icon(Icons.calendar_today),
+                        ),
+                        onTap: () => _selectDate(context),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Informe a data de nascimento';
                           }
                           return null;
                         },
@@ -144,66 +185,20 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      const Text('Escola', style: TextStyle(fontWeight: FontWeight.bold)),
-                      DropdownButtonFormField<String>(
-                        value: escolaSelecionada,
-                        items: escolas
-                            .map((escola) => DropdownMenuItem(
-                                  value: escola,
-                                  child: Text(escola),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            escolaSelecionada = value;
-                          });
-                        },
-                        decoration: const InputDecoration(
-                          border: UnderlineInputBorder(),
-                          hintText: 'Selecione sua escola',
-                        ),
-                        validator: (value) =>
-                            value == null ? 'Selecione uma escola' : null,
-                      ),
-                      const SizedBox(height: 16),
-
-                      const Text('Ano escolar', style: TextStyle(fontWeight: FontWeight.bold)),
-                      DropdownButtonFormField<String>(
-                        value: anoSelecionado,
-                        items: anos
-                            .map((ano) => DropdownMenuItem(
-                                  value: ano,
-                                  child: Text(ano),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            anoSelecionado = value;
-                          });
-                        },
-                        decoration: const InputDecoration(
-                          border: UnderlineInputBorder(),
-                          hintText: 'Selecione o ano',
-                        ),
-                        validator: (value) =>
-                            value == null ? 'Selecione o ano escolar' : null,
-                      ),
-                      const SizedBox(height: 16),
-
-                      const Text('Senha', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('Telefone', style: TextStyle(fontWeight: FontWeight.bold)),
                       TextFormField(
-                        controller: senhaController,
-                        obscureText: true,
+                        controller: telefoneController,
+                        keyboardType: TextInputType.phone,
                         decoration: const InputDecoration(
-                          hintText: '************',
+                          hintText: '(99) 99999-9999',
                           border: UnderlineInputBorder(),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Informe uma senha';
+                            return 'Informe o telefone';
                           }
-                          if (value.length < 6) {
-                            return 'A senha deve ter no mínimo 6 caracteres';
+                          if (!RegExp(r'^\(?\d{2}\)? ?\d{4,5}-?\d{4}$').hasMatch(value)) {
+                            return 'Telefone inválido';
                           }
                           return null;
                         },

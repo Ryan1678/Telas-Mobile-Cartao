@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'categoria.dart';
+import 'cartao_virtual.dart';
 
 class PresentationScreen extends StatelessWidget {
   const PresentationScreen({super.key});
@@ -26,7 +26,7 @@ class PresentationScreen extends StatelessWidget {
                         children: [
                           Image.asset('assets/images/logo-fieb.png', height: 60),
                           const SizedBox(height: 16),
-                          Image.asset('assets/images/Apresentação.jpg', height: 160),
+                          Image.asset('assets/images/cartao.png', height: 160),
                         ],
                       ),
                       const SizedBox(height: 32),
@@ -53,7 +53,7 @@ class PresentationScreen extends StatelessWidget {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const CategoriasScreen(),
+                              builder: (context) => const CartaoVirtualScreen(),
                             ),
                           );
                         },

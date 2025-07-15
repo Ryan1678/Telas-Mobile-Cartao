@@ -68,7 +68,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Venha desfrutar do aplicativo para\nalimentar-se bem!!',
+                    'Venha desfrutar do aplicativo para\nfacilitar sua compra!!',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,

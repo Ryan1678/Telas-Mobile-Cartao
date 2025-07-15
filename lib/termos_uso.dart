@@ -26,57 +26,57 @@ class TermosUsoScreen extends StatelessWidget {
             ),
             SizedBox(height: 8),
             Text(
-              'Este aplicativo tem como objetivo facilitar a compra antecipada de lanches na cantina escolar, permitindo mais praticidade e organização para alunos e responsáveis.',
+              'Este aplicativo tem como objetivo permitir a recarga antecipada de um cartão virtual utilizado na cantina escolar. A compra de alimentos e produtos é realizada presencialmente na instituição, utilizando o saldo do cartão.',
             ),
             SizedBox(height: 20),
 
             Text(
-              '2. Pagamento e Reembolso',
+              '2. Recarga e Pagamento',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.pink),
             ),
             SizedBox(height: 8),
             Text(
-              'Os pagamentos são realizados de forma antecipada via cartão de crédito ou débito. Em caso de ausência do aluno ou erro no pedido, a solicitação de reembolso deverá ser feita diretamente na cantina.',
+              'As recargas devem ser feitas através do aplicativo utilizando cartão de crédito, débito ou outros meios digitais disponibilizados. O saldo será creditado no cartão virtual do aluno para uso exclusivo na cantina da escola.',
             ),
             SizedBox(height: 20),
 
             Text(
-              '3. Horário de Funcionamento',
+              '3. Utilização do Saldo',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.pink),
             ),
             SizedBox(height: 8),
             Text(
-              'Os pedidos podem ser realizados de segunda a sexta, até 30 minutos antes do horário de recreio.',
+              'O saldo disponível no cartão virtual pode ser utilizado apenas para compras presenciais na cantina da escola. Não é possível realizar pedidos ou reservas de produtos através do aplicativo.',
             ),
             SizedBox(height: 20),
 
             Text(
-              '4. Retirada dos Produtos',
+              '4. Reembolso',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.pink),
             ),
             SizedBox(height: 8),
             Text(
-              'Os itens comprados devem ser retirados presencialmente na cantina no horário estipulado. É responsabilidade do aluno fazer a retirada no dia correto.',
+              'Em caso de erro na recarga ou problemas relacionados ao uso do saldo, o responsável deverá entrar em contato diretamente com a administração da escola para análise e possível reembolso.',
             ),
             SizedBox(height: 20),
 
             Text(
-              '5. Privacidade dos Dados',
+              '5. Privacidade e Segurança',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.pink),
             ),
             SizedBox(height: 8),
             Text(
-              'Todas as informações pessoais e dados de pagamento são armazenados de forma segura e utilizados apenas para os fins operacionais do aplicativo.',
+              'As informações pessoais e dados de pagamento são protegidos e utilizados exclusivamente para as operações de recarga e gestão do saldo no cartão virtual.',
             ),
             SizedBox(height: 20),
 
             Text(
-              '6. Modificações dos Termos',
+              '6. Atualizações dos Termos',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.pink),
             ),
             SizedBox(height: 8),
             Text(
-              'Estes termos podem ser atualizados periodicamente. É responsabilidade do usuário consultá-los sempre que necessário.',
+              'Estes termos podem ser alterados a qualquer momento. Recomendamos que os usuários verifiquem regularmente as atualizações para se manterem informados.',
             ),
           ],
         ),
