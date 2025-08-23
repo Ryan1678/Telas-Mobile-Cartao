@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'login.dart';
 
 class CadastroScreen extends StatefulWidget {
@@ -15,16 +16,19 @@ class _CadastroScreenState extends State<CadastroScreen> {
   final emailController = TextEditingController();
   final senhaController = TextEditingController();
   final dataNascimentoController = TextEditingController();
-  final rmController = TextEditingController();
+  final documentoController = TextEditingController();
   final telefoneController = TextEditingController();
 
+  String tipoCliente = 'Aluno';
   bool _obscureSenha = true;
 
   void handleCadastro() {
     if (!_formKey.currentState!.validate()) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cadastro realizado com sucesso!')),
+      const SnackBar(content: Text('Cadastro realizado com sucesso!'),
+      backgroundColor: Colors.pink,
+      ),
     );
 
     Navigator.pushReplacement(
@@ -42,11 +46,35 @@ class _CadastroScreenState extends State<CadastroScreen> {
     );
     if (picked != null) {
       setState(() {
-        dataNascimentoController.text = "${picked.day.toString().padLeft(2, '0')}/"
+        dataNascimentoController.text =
+            "${picked.day.toString().padLeft(2, '0')}/"
             "${picked.month.toString().padLeft(2, '0')}/"
             "${picked.year}";
       });
     }
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: GoogleFonts.poppins(color: Colors.grey.shade500),
+      border: const UnderlineInputBorder(),
+      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text(
+        text,
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+          color: Colors.pink.shade600,
+        ),
+      ),
+    );
   }
 
   @override
@@ -84,13 +112,12 @@ class _CadastroScreenState extends State<CadastroScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text('Nome completo', style: TextStyle(fontWeight: FontWeight.bold)),
+                      // Nome
+                      _buildLabel('Nome completo'),
                       TextFormField(
                         controller: nomeController,
-                        decoration: const InputDecoration(
-                          hintText: 'João da Silva',
-                          border: UnderlineInputBorder(),
-                        ),
+                        decoration: _inputDecoration('João da Silva'),
+                        style: GoogleFonts.poppins(),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Informe seu nome completo';
@@ -100,19 +127,19 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      const Text('E-mail', style: TextStyle(fontWeight: FontWeight.bold)),
+                      // Email
+                      _buildLabel('E-mail'),
                       TextFormField(
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          hintText: 'exemplo@email.com',
-                          border: UnderlineInputBorder(),
-                        ),
+                        decoration: _inputDecoration('exemplo@email.com'),
+                        style: GoogleFonts.poppins(),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Informe seu e-mail';
                           }
-                          if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,4}$').hasMatch(value)) {
+                          if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,4}$')
+                              .hasMatch(value)) {
                             return 'E-mail inválido';
                           }
                           return null;
@@ -120,7 +147,8 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      const Text('Senha', style: TextStyle(fontWeight: FontWeight.bold)),
+                      // Senha
+                      _buildLabel('Senha'),
                       TextFormField(
                         controller: senhaController,
                         obscureText: _obscureSenha,
@@ -128,12 +156,15 @@ class _CadastroScreenState extends State<CadastroScreen> {
                           hintText: 'Digite sua senha',
                           border: const UnderlineInputBorder(),
                           suffixIcon: IconButton(
-                            icon: Icon(_obscureSenha ? Icons.visibility_off : Icons.visibility),
+                            icon: Icon(_obscureSenha
+                                ? Icons.visibility_off
+                                : Icons.visibility),
                             onPressed: () {
                               setState(() => _obscureSenha = !_obscureSenha);
                             },
                           ),
                         ),
+                        style: GoogleFonts.poppins(),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Informe sua senha';
@@ -146,15 +177,17 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      const Text('Data de nascimento', style: TextStyle(fontWeight: FontWeight.bold)),
+                      // Data de Nascimento
+                      _buildLabel('Data de nascimento'),
                       TextFormField(
                         controller: dataNascimentoController,
                         readOnly: true,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: 'DD/MM/AAAA',
-                          border: UnderlineInputBorder(),
-                          suffixIcon: Icon(Icons.calendar_today),
+                          border: const UnderlineInputBorder(),
+                          suffixIcon: const Icon(Icons.calendar_today),
                         ),
+                        style: GoogleFonts.poppins(),
                         onTap: () => _selectDate(context),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -165,39 +198,58 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      const Text('RM', style: TextStyle(fontWeight: FontWeight.bold)),
-                      TextFormField(
-                        controller: rmController,
-                        keyboardType: TextInputType.number,
+                      // Tipo de Cliente
+                      _buildLabel('Tipo de Cliente'),
+                      DropdownButtonFormField<String>(
+                        value: tipoCliente,
+                        items: ['Aluno', 'Responsável', 'Professor']
+                            .map((tipo) => DropdownMenuItem(
+                                  value: tipo,
+                                  child: Text(tipo, style: GoogleFonts.poppins()),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            tipoCliente = value!;
+                            documentoController.clear();
+                          });
+                        },
                         decoration: const InputDecoration(
-                          hintText: '123456',
                           border: UnderlineInputBorder(),
                         ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Documento
+                      _buildLabel('Documento'),
+                      TextFormField(
+                        controller: documentoController,
+                        keyboardType: TextInputType.text,
+                        style: GoogleFonts.poppins(),
+                        decoration: _inputDecoration(
+                            tipoCliente == 'Aluno' ? 'RM' : 'CPF'),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Informe o RM';
-                          }
-                          if (!RegExp(r'^\d+$').hasMatch(value)) {
-                            return 'O RM deve conter apenas números';
+                            return 'Informe o documento';
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 16),
 
-                      const Text('Telefone', style: TextStyle(fontWeight: FontWeight.bold)),
+                      // Telefone
+                      _buildLabel('Telefone'),
                       TextFormField(
                         controller: telefoneController,
                         keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                          hintText: '(99) 99999-9999',
-                          border: UnderlineInputBorder(),
-                        ),
+                        style: GoogleFonts.poppins(),
+                        decoration: _inputDecoration('(99) 99999-9999'),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Informe o telefone';
                           }
-                          if (!RegExp(r'^\(?\d{2}\)? ?\d{4,5}-?\d{4}$').hasMatch(value)) {
+                          if (!RegExp(r'^\(?\d{2}\)? ?\d{4,5}-?\d{4}$')
+                              .hasMatch(value)) {
                             return 'Telefone inválido';
                           }
                           return null;
@@ -205,6 +257,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       ),
                       const SizedBox(height: 24),
 
+                      // Botão Cadastrar
                       ElevatedButton(
                         onPressed: handleCadastro,
                         style: ElevatedButton.styleFrom(
@@ -214,19 +267,32 @@ class _CadastroScreenState extends State<CadastroScreen> {
                             borderRadius: BorderRadius.circular(30),
                           ),
                         ),
-                        child: const Text('Cadastrar', style: TextStyle(color: Colors.white)),
+                        child: Text(
+                          'Cadastrar',
+                          style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600),
+                        ),
                       ),
                       const SizedBox(height: 16),
 
+                      // Botão Login
                       Center(
                         child: TextButton(
                           onPressed: () {
                             Navigator.pushReplacement(
                               context,
-                              MaterialPageRoute(builder: (context) => const LoginScreen()),
+                              MaterialPageRoute(
+                                  builder: (context) => const LoginScreen()),
                             );
                           },
-                          child: const Text('Já tem uma conta? Fazer login'),
+                          child: Text(
+                            'Já tem uma conta? Fazer login',
+                            style: GoogleFonts.poppins(
+                              color: Colors.pink.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
                       ),
                     ],

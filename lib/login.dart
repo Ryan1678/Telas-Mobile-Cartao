@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'cadastro.dart';
 import 'esqueceusenha.dart';
 import 'Apresentação.dart';
@@ -18,14 +19,38 @@ class _LoginScreenState extends State<LoginScreen> {
   void handleLogin() {
     if (!_formKey.currentState!.validate()) return;
 
-    // Simulação de login bem-sucedido
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Login realizado com sucesso!')),
+      const SnackBar(content: Text('Login realizado com sucesso!'),
+      backgroundColor: Colors.pink,
+      ),
     );
 
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const PresentationScreen()),
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: GoogleFonts.poppins(color: Colors.grey.shade500),
+      border: const UnderlineInputBorder(),
+      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text(
+        text,
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+          color: Colors.pink.shade600,
+        ),
+      ),
     );
   }
 
@@ -64,14 +89,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text('Email', style: TextStyle(fontWeight: FontWeight.bold)),
+                      _buildLabel('Email'),
                       TextFormField(
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          hintText: 'email@gmail.com',
-                          border: UnderlineInputBorder(),
-                        ),
+                        decoration: _inputDecoration('email@gmail.com'),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Informe um e-mail';
@@ -84,14 +106,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      const Text('Senha', style: TextStyle(fontWeight: FontWeight.bold)),
+                      _buildLabel('Senha'),
                       TextFormField(
                         controller: senhaController,
                         obscureText: true,
-                        decoration: const InputDecoration(
-                          hintText: '************',
-                          border: UnderlineInputBorder(),
-                        ),
+                        decoration: _inputDecoration('************'),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Informe sua senha';
@@ -106,13 +125,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       ElevatedButton(
                         onPressed: handleLogin,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.pinkAccent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: Colors.pinkAccent.shade200,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
                         ),
-                        child: const Text('Entrar', style: TextStyle(color: Colors.white)),
+                        child: Text(
+                          'Entrar',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Center(
@@ -123,7 +149,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               MaterialPageRoute(builder: (context) => const EsquecerSenhaScreen()),
                             );
                           },
-                          child: const Text('Esqueceu a senha?'),
+                          child: Text(
+                            'Esqueceu a senha?',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Colors.pink.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -135,14 +168,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               MaterialPageRoute(builder: (context) => const CadastroScreen()),
                             );
                           },
-                          child: const Text.rich(
+                          child: Text.rich(
                             TextSpan(
                               text: 'Não possui um login? ',
+                              style: GoogleFonts.poppins(color: Colors.grey.shade700),
                               children: [
                                 TextSpan(
                                   text: 'Faça cadastro',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                )
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.pink.shade600,
+                                  ),
+                                ),
                               ],
                             ),
                           ),

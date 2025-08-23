@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:google_fonts/google_fonts.dart';
 import 'perfil.dart';
 import 'solicitarRecarga.dart';
 
@@ -10,11 +11,13 @@ class CartaoVirtualScreen extends StatefulWidget {
   State<CartaoVirtualScreen> createState() => _CartaoVirtualScreenState();
 }
 
-class _CartaoVirtualScreenState extends State<CartaoVirtualScreen> {
+class _CartaoVirtualScreenState extends State<CartaoVirtualScreen> with TickerProviderStateMixin {
   final List<Map<String, dynamic>> _cartoes = [];
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nomeController = TextEditingController();
   bool _showForm = false;
+
+  final List<AnimationController> _animControllers = [];
 
   void _onTap(int index) {
     switch (index) {
@@ -41,14 +44,24 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen> {
     double saldo = (random.nextDouble() * 1000);
     int id = random.nextInt(100000);
 
+    final cartao = {
+      'nome': nome,
+      'numero': numero,
+      'id': id,
+      'data': DateTime.now(),
+      'saldo': saldo.toStringAsFixed(2),
+    };
+
     setState(() {
-      _cartoes.add({
-        'nome': nome,
-        'numero': numero,
-        'id': id,
-        'data': DateTime.now(),
-        'saldo': saldo.toStringAsFixed(2),
-      });
+      _cartoes.add(cartao);
+
+      final controller = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 500),
+      );
+      _animControllers.add(controller);
+      controller.forward();
+
       _showForm = false;
       _nomeController.clear();
     });
@@ -69,136 +82,207 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen> {
   @override
   void dispose() {
     _nomeController.dispose();
+    for (var controller in _animControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(top: 32, left: 24),
-              child: Text(
-                'Cartões Virtuais',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.pink,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: ElevatedButton(
-                onPressed: _abrirFormulario,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pink.shade400,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: const Center(
-                  child: Text(
-                    'CRIAR CARTÃO',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-            if (_showForm)
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFFF8BBD0), // Rosa mais forte
+              Color(0xFFFFE4EC), // Rosa clarinho
+              Colors.white       // Branco
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Padding(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        controller: _nomeController,
-                        decoration: const InputDecoration(
-                          labelText: 'Nome do Cartão',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Digite um nome';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: _salvarFormulario,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.pink.shade400,
-                        ),
-                        child: const Text('Confirmar', style: TextStyle(color: Colors.white)),
-                      ),
-                    ],
+                padding: const EdgeInsets.only(top: 32, left: 24),
+                child: Text(
+                  'Cartões Virtuais',
+                  style: GoogleFonts.poppins(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.pink.shade400,
                   ),
                 ),
               ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: Padding(
+              const SizedBox(height: 16),
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: _cartoes.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'Nenhum cartão criado ainda.',
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: _cartoes.length,
-                        itemBuilder: (context, index) {
-                          final cartao = _cartoes[index];
-                          return Card(
-                            shape: RoundedRectangleBorder(
+                child: ElevatedButton(
+                  onPressed: _abrirFormulario,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pink.shade400,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'CRIAR CARTÃO',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              if (_showForm)
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _nomeController,
+                          decoration: InputDecoration(
+                            labelText: 'Nome do Cartão',
+                            labelStyle: GoogleFonts.poppins(),
+                            border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            elevation: 4,
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    cartao['nome'],
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.pink,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    '**** **** **** ${cartao['numero'].substring(12)}',
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF002147),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text('ID: ${cartao['id']}'),
-                                  Text('Criado em: ${cartao['data'].toString().substring(0, 16)}'),
-                                  Text('Saldo: R\$ ${cartao['saldo']}'),
-                                ],
-                              ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Digite um nome';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                          onPressed: _salvarFormulario,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.pink.shade400,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                          child: Text(
+                            'Confirmar',
+                            style: GoogleFonts.poppins(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _cartoes.isEmpty
+                      ? Center(
+                          child: Text(
+                            'Nenhum cartão criado ainda.',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: _cartoes.length,
+                          itemBuilder: (context, index) {
+                            final cartao = _cartoes[index];
+                            final animController = _animControllers[index];
+                            final animation = Tween<Offset>(
+                              begin: const Offset(0, 0.3),
+                              end: Offset.zero,
+                            ).animate(
+                              CurvedAnimation(
+                                parent: animController,
+                                curve: Curves.easeOut,
+                              ),
+                            );
+
+                            return FadeTransition(
+                              opacity: animController,
+                              child: SlideTransition(
+                                position: animation,
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [Colors.pink.shade300, Colors.pink.shade100],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.pink.shade100,
+                                        blurRadius: 6,
+                                        offset: const Offset(2, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          cartao['nome'],
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          '**** **** **** ${cartao['numero'].substring(12)}',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'ID: ${cartao['id']}',
+                                          style: GoogleFonts.poppins(color: Colors.white70),
+                                        ),
+                                        Text(
+                                          'Criado em: ${cartao['data'].toString().substring(0, 16)}',
+                                          style: GoogleFonts.poppins(color: Colors.white70),
+                                        ),
+                                        Text(
+                                          'Saldo: R\$ ${cartao['saldo']}',
+                                          style: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: MyBottomNavigationBar(
@@ -250,7 +334,6 @@ class MyBottomNavigationBar extends StatelessWidget {
             icon: Icon(Icons.grid_view_rounded),
             label: '',
           ),
-          // Aqui substitui o ícone do carrinho pelo ícone de cartão (exemplo: credit_card)
           BottomNavigationBarItem(
             icon: Icon(Icons.credit_card),
             label: '',

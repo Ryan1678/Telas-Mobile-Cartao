@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'login.dart'; // ← IMPORTA A TELA DE LOGIN
 
 void main() {
@@ -57,22 +58,23 @@ class HomeScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     'Você faz parte da\nFIEB TECH?',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Venha desfrutar do aplicativo para\nfacilitar sua compra!!',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 16,
                       color: Colors.white70,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -80,14 +82,13 @@ class HomeScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pinkAccent,
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        backgroundColor: Colors.pinkAccent.shade200,
+                        padding: const EdgeInsets.symmetric(vertical: 18.0),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
+                          borderRadius: BorderRadius.circular(30.0), // mais arredondado
                         ),
                       ),
                       onPressed: () {
-                        // 👉 NAVEGAÇÃO PARA LOGIN
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -95,9 +96,13 @@ class HomeScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      child: const Text(
+                      child: Text(
                         'Faça login',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),

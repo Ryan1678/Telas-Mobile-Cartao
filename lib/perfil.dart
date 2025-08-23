@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'main.dart';
 import 'carteira.dart';
 import 'termos_uso.dart';
@@ -37,28 +38,38 @@ class PerfilScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 5,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 6,
+      shadowColor: Colors.pink.shade100,
       margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      color: Colors.white.withOpacity(0.95),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
           child: Row(
             children: [
-              Icon(icon, color: Colors.pink.shade400, size: 30),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.pink.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: Colors.pink.shade400, size: 28),
+              ),
               const SizedBox(width: 20),
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 21,
-                    fontWeight: FontWeight.w700,
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade800,
                   ),
                 ),
               ),
-              const Icon(Icons.chevron_right, color: Colors.grey, size: 24),
+              const Icon(Icons.chevron_right, color: Colors.grey, size: 26),
             ],
           ),
         ),
@@ -69,13 +80,17 @@ class PerfilScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Perfil',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+            color: Colors.pink.shade400,
+          ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.pink.shade400),
         leading: IconButton(
@@ -88,67 +103,80 @@ class PerfilScreen extends StatelessWidget {
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: ListView(
-          children: [
-            _buildPerfilItem(
-              context: context,
-              icon: Icons.settings,
-              title: 'Configurações do perfil',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ConfiguracoesPerfilScreen()),
-                );
-              },
-            ),
-            _buildPerfilItem(
-              context: context,
-              icon: Icons.account_balance_wallet,
-              title: 'Minha Carteira',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CarteiraScreen()),
-                );
-              },
-            ),
-            _buildPerfilItem(
-              context: context,
-              icon: Icons.description_outlined,
-              title: 'Termos de Uso',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const TermosUsoScreen()),
-                );
-              },
-            ),
-            _buildPerfilItem(
-              context: context,
-              icon: Icons.support_agent,
-              title: 'Fale Conosco',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const FaleConoscoScreen()),
-                );
-              },
-            ),
-            _buildPerfilItem(
-              context: context,
-              icon: Icons.logout,
-              title: 'Fazer Logoff',
-              onTap: () {
-                print('Usuário fez logoff');
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const FiebTechApp()),
-                );
-              },
-            ),
-          ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFFF8BBD0), // rosa mais forte no topo
+              Color(0xFFFFE4EC), // rosa clarinho
+              Colors.white // base branca
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 25, left: 24, right: 24),
+          child: ListView(
+            children: [
+              _buildPerfilItem(
+                context: context,
+                icon: Icons.settings,
+                title: 'Configurações do perfil',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ConfiguracoesPerfilScreen()),
+                  );
+                },
+              ),
+              _buildPerfilItem(
+                context: context,
+                icon: Icons.account_balance_wallet,
+                title: 'Minha Carteira',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CarteiraScreen()),
+                  );
+                },
+              ),
+              _buildPerfilItem(
+                context: context,
+                icon: Icons.description_outlined,
+                title: 'Termos de Uso',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TermosUsoScreen()),
+                  );
+                },
+              ),
+              _buildPerfilItem(
+                context: context,
+                icon: Icons.support_agent,
+                title: 'Fale Conosco',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const FaleConoscoScreen()),
+                  );
+                },
+              ),
+              _buildPerfilItem(
+                context: context,
+                icon: Icons.logout,
+                title: 'Fazer Logoff',
+                onTap: () {
+                  print('Usuário fez logoff');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const FiebTechApp()),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: MyBottomNavigationBar(

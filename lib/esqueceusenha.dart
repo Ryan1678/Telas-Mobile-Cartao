@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class EsquecerSenhaScreen extends StatefulWidget {
   const EsquecerSenhaScreen({super.key});
@@ -36,9 +37,32 @@ class _EsquecerSenhaScreenState extends State<EsquecerSenhaScreen> {
   void handleAtualizarSenha() {
     if (!_formKey.currentState!.validate()) return;
 
-    // Aqui viria a lógica real para atualizar a senha após validação
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Senha atualizada com sucesso!')),
+      const SnackBar(content: Text('Senha atualizada com sucesso!'),
+      backgroundColor: Colors.pink),
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: GoogleFonts.poppins(color: Colors.grey.shade500),
+      border: const UnderlineInputBorder(),
+      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text(
+        text,
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+          color: Colors.pink.shade600,
+        ),
+      ),
     );
   }
 
@@ -88,31 +112,34 @@ class _EsquecerSenhaScreenState extends State<EsquecerSenhaScreen> {
                             foregroundColor: Colors.pinkAccent,
                           ),
                           icon: const Icon(Icons.arrow_back_ios_new, size: 16),
-                          label: const Text('Voltar', style: TextStyle(fontWeight: FontWeight.w500)),
+                          label: Text(
+                            'Voltar',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                          ),
                           onPressed: () {
                             Navigator.pop(context);
                           },
                         ),
                       ),
-
                       const SizedBox(height: 16),
-
-                      const Text('Email', style: TextStyle(fontWeight: FontWeight.bold)),
+                      _buildLabel('Email'),
                       Row(
                         children: [
                           Expanded(
                             child: TextFormField(
                               controller: emailController,
                               keyboardType: TextInputType.emailAddress,
-                              decoration: const InputDecoration(
-                                hintText: 'email@gmail.com',
-                                border: UnderlineInputBorder(),
-                              ),
+                              decoration: _inputDecoration('email@gmail.com'),
+                              style: GoogleFonts.poppins(),
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return 'Informe um e-mail';
                                 }
-                                final emailRegex = RegExp(r'^[\w\.-]+@[\w\.-]+\.\w+$');
+                                final emailRegex =
+                                    RegExp(r'^[\w\.-]+@[\w\.-]+\.\w+$');
                                 if (!emailRegex.hasMatch(value)) {
                                   return 'E-mail inválido';
                                 }
@@ -124,32 +151,37 @@ class _EsquecerSenhaScreenState extends State<EsquecerSenhaScreen> {
                           ElevatedButton(
                             onPressed: emailPreenchido
                                 ? () {
-                                    // Lógica futura: enviar código de verificação
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Código enviado para o e-mail.')),
+                                      const SnackBar(
+                                          content: Text(
+                                              'Código enviado para o e-mail.'),
+                                              backgroundColor: Colors.pink
+                                              ),
                                     );
                                   }
                                 : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.pinkAccent,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
                             ),
-                            child: const Text('Send', style: TextStyle(color: Colors.white)),
+                            child: Text(
+                              'Send',
+                              style: GoogleFonts.poppins(
+                                  color: Colors.white, fontWeight: FontWeight.w600),
+                            ),
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 24),
-                      const Text('Código de verificação', style: TextStyle(fontWeight: FontWeight.bold)),
+                      _buildLabel('Código de verificação'),
                       TextFormField(
                         controller: codigoController,
-                        decoration: const InputDecoration(
-                          hintText: 'Digite o código enviado por e-mail',
-                          border: UnderlineInputBorder(),
-                        ),
+                        decoration: _inputDecoration('Digite o código enviado por e-mail'),
+                        style: GoogleFonts.poppins(),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Digite o código de verificação';
@@ -157,16 +189,13 @@ class _EsquecerSenhaScreenState extends State<EsquecerSenhaScreen> {
                           return null;
                         },
                       ),
-
                       const SizedBox(height: 24),
-                      const Text('Nova Senha', style: TextStyle(fontWeight: FontWeight.bold)),
+                      _buildLabel('Nova Senha'),
                       TextFormField(
                         controller: novaSenhaController,
                         obscureText: true,
-                        decoration: const InputDecoration(
-                          hintText: '************',
-                          border: UnderlineInputBorder(),
-                        ),
+                        decoration: _inputDecoration('************'),
+                        style: GoogleFonts.poppins(),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Digite uma nova senha';
@@ -177,7 +206,6 @@ class _EsquecerSenhaScreenState extends State<EsquecerSenhaScreen> {
                           return null;
                         },
                       ),
-
                       const SizedBox(height: 24),
                       ElevatedButton(
                         onPressed: handleAtualizarSenha,
@@ -188,7 +216,13 @@ class _EsquecerSenhaScreenState extends State<EsquecerSenhaScreen> {
                             borderRadius: BorderRadius.circular(30),
                           ),
                         ),
-                        child: const Text('Atualizar Senha', style: TextStyle(color: Colors.white)),
+                        child: Text(
+                          'Atualizar Senha',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ),

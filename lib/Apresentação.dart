@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'cartao_virtual.dart';
 
 class PresentationScreen extends StatelessWidget {
@@ -30,23 +31,34 @@ class PresentationScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 32),
-                      const Text(
+
+                      Text(
                         'Tenha mais praticidade!',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: GoogleFonts.poppins(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.pink.shade600,
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
+
+                      Text(
                         'Seja bem-vindo ao nosso aplicativo. Desfrute da rapidez para comprar o que quiser na instituição FIEB que você estuda.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16, color: Colors.black54),
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          color: Colors.black54,
+                        ),
                       ),
-                      const Spacer(), // empurra o botão para o fim da tela, se tiver espaço
+                      const Spacer(),
+
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.pinkAccent,
-                          padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 12.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 50.0, vertical: 16.0),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(30),
                           ),
                         ),
                         onPressed: () {
@@ -57,9 +69,13 @@ class PresentationScreen extends StatelessWidget {
                             ),
                           );
                         },
-                        child: const Text(
+                        child: Text(
                           'Próximo',
-                          style: TextStyle(fontSize: 16, color: Colors.white),
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 40),
