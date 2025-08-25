@@ -8,8 +8,32 @@ import 'cartao_virtual.dart';
 import 'solicitarRecarga.dart';
 import 'faleconosco.dart';
 
-class PerfilScreen extends StatelessWidget {
+// PerfilScreen agora também tem animação de ondas
+class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
+
+  @override
+  State<PerfilScreen> createState() => _PerfilScreenState();
+}
+
+class _PerfilScreenState extends State<PerfilScreen>
+    with TickerProviderStateMixin {
+  late final AnimationController _waveAnimationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _waveAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _waveAnimationController.dispose();
+    super.dispose();
+  }
 
   void _onTap(BuildContext context, int index) {
     if (index != 2) {
@@ -126,7 +150,8 @@ class PerfilScreen extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const ConfiguracoesPerfilScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const ConfiguracoesPerfilScreen()),
                   );
                 },
               ),
@@ -179,9 +204,23 @@ class PerfilScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: MyBottomNavigationBar(
-        currentIndex: 2,
-        onTap: (index) => _onTap(context, index),
+      bottomNavigationBar: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          AnimatedBuilder(
+            animation: _waveAnimationController,
+            builder: (context, child) {
+              return CustomPaint(
+                painter: WavePainter(_waveAnimationController.value),
+                size: const Size(double.infinity, 100),
+              );
+            },
+          ),
+          MyBottomNavigationBar(
+            currentIndex: 2, // Marca a aba Perfil
+            onTap: (index) => _onTap(context, index),
+          ),
+        ],
       ),
     );
   }

@@ -11,13 +11,16 @@ class CartaoVirtualScreen extends StatefulWidget {
   State<CartaoVirtualScreen> createState() => _CartaoVirtualScreenState();
 }
 
-class _CartaoVirtualScreenState extends State<CartaoVirtualScreen> with TickerProviderStateMixin {
+class _CartaoVirtualScreenState extends State<CartaoVirtualScreen>
+    with TickerProviderStateMixin {
   final List<Map<String, dynamic>> _cartoes = [];
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nomeController = TextEditingController();
   bool _showForm = false;
 
   final List<AnimationController> _animControllers = [];
+
+  late final AnimationController _waveAnimationController;
 
   void _onTap(int index) {
     switch (index) {
@@ -80,8 +83,18 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen> with TickerPr
   }
 
   @override
+  void initState() {
+    super.initState();
+    _waveAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+  }
+
+  @override
   void dispose() {
     _nomeController.dispose();
+    _waveAnimationController.dispose();
     for (var controller in _animControllers) {
       controller.dispose();
     }
@@ -95,9 +108,9 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen> with TickerPr
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFFF8BBD0), // Rosa mais forte
-              Color(0xFFFFE4EC), // Rosa clarinho
-              Colors.white       // Branco
+              Color(0xFFF8BBD0),
+              Color(0xFFFFE4EC),
+              Colors.white
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -217,10 +230,14 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen> with TickerPr
                               child: SlideTransition(
                                 position: animation,
                                 child: Container(
-                                  margin: const EdgeInsets.symmetric(vertical: 8),
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 8),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
-                                      colors: [Colors.pink.shade300, Colors.pink.shade100],
+                                      colors: [
+                                        Colors.pink.shade300,
+                                        Colors.pink.shade100
+                                      ],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                     ),
@@ -236,7 +253,8 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen> with TickerPr
                                   child: Padding(
                                     padding: const EdgeInsets.all(16),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           cartao['nome'],
@@ -258,11 +276,13 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen> with TickerPr
                                         const SizedBox(height: 8),
                                         Text(
                                           'ID: ${cartao['id']}',
-                                          style: GoogleFonts.poppins(color: Colors.white70),
+                                          style: GoogleFonts.poppins(
+                                              color: Colors.white70),
                                         ),
                                         Text(
                                           'Criado em: ${cartao['data'].toString().substring(0, 16)}',
-                                          style: GoogleFonts.poppins(color: Colors.white70),
+                                          style: GoogleFonts.poppins(
+                                              color: Colors.white70),
                                         ),
                                         Text(
                                           'Saldo: R\$ ${cartao['saldo']}',
@@ -285,9 +305,23 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen> with TickerPr
           ),
         ),
       ),
-      bottomNavigationBar: MyBottomNavigationBar(
-        currentIndex: 0,
-        onTap: _onTap,
+      bottomNavigationBar: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          AnimatedBuilder(
+            animation: _waveAnimationController,
+            builder: (context, child) {
+              return CustomPaint(
+                painter: WavePainter(_waveAnimationController.value),
+                size: const Size(double.infinity, 100),
+              );
+            },
+          ),
+          MyBottomNavigationBar(
+            currentIndex: 0,
+            onTap: _onTap,
+          ),
+        ],
       ),
     );
   }
@@ -307,17 +341,8 @@ class MyBottomNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 36, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade200,
-            blurRadius: 10,
-            spreadRadius: 2,
-            offset: const Offset(2, 2),
-          ),
-        ],
+      decoration: const BoxDecoration(
+        color: Colors.transparent,
       ),
       child: BottomNavigationBar(
         selectedItemColor: Colors.pinkAccent.shade400,
@@ -346,4 +371,60 @@ class MyBottomNavigationBar extends StatelessWidget {
       ),
     );
   }
+}
+
+// CustomPainter para desenhar as ondas
+class WavePainter extends CustomPainter {
+  final double animationValue;
+
+  WavePainter(this.animationValue);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint1 = Paint()
+      ..color = Colors.pinkAccent.shade100
+      ..style = PaintingStyle.fill;
+
+    final path1 = Path();
+    path1.moveTo(0, size.height * 0.6);
+    path1.quadraticBezierTo(
+        size.width * 0.25,
+        size.height * (0.7 + 0.1 * sin(animationValue * 2 * pi)),
+        size.width * 0.5,
+        size.height * 0.6);
+    path1.quadraticBezierTo(
+        size.width * 0.75,
+        size.height * (0.5 + 0.1 * cos(animationValue * 2 * pi)),
+        size.width,
+        size.height * 0.6);
+    path1.lineTo(size.width, size.height);
+    path1.lineTo(0, size.height);
+    path1.close();
+    canvas.drawPath(path1, paint1);
+
+    final paint2 = Paint()
+      ..color = Colors.pinkAccent.shade100.withOpacity(0.6)
+      ..style = PaintingStyle.fill;
+
+    final path2 = Path();
+    path2.moveTo(0, size.height * 0.5);
+    path2.quadraticBezierTo(
+        size.width * 0.25,
+        size.height * (0.6 + 0.1 * cos(animationValue * 2 * pi)),
+        size.width * 0.5,
+        size.height * 0.5);
+    path2.quadraticBezierTo(
+        size.width * 0.75,
+        size.height * (0.4 + 0.1 * sin(animationValue * 2 * pi)),
+        size.width,
+        size.height * 0.5);
+    path2.lineTo(size.width, size.height);
+    path2.lineTo(0, size.height);
+    path2.close();
+    canvas.drawPath(path2, paint2);
+  }
+
+  @override
+  bool shouldRepaint(covariant WavePainter oldDelegate) =>
+      oldDelegate.animationValue != animationValue;
 }

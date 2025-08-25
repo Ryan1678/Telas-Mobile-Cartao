@@ -10,12 +10,30 @@ class SolicitarRecargaScreen extends StatefulWidget {
   State<SolicitarRecargaScreen> createState() => _SolicitarRecargaScreenState();
 }
 
-class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen> {
+class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   String? selectedCardId;
   String valor = '';
 
   final List<String> cartoesMock = ['001-AB', '002-CD', '003-EF']; // Mock dos cartões
+
+  late final AnimationController _waveAnimationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _waveAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _waveAnimationController.dispose();
+    super.dispose();
+  }
 
   void _onTap(int index) {
     Widget screen;
@@ -62,9 +80,9 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFFF8BBD0), // Rosa mais forte no topo
-              Color(0xFFFFE4EC), // Rosa claro
-              Colors.white       // Branco na base
+              Color(0xFFF8BBD0),
+              Color(0xFFFFE4EC),
+              Colors.white
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -99,7 +117,7 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 48), // Para balancear alinhamento
+                    const SizedBox(width: 48),
                   ],
                 ),
               ),
@@ -156,7 +174,7 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen> {
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
                           decoration: InputDecoration(
                             hintText: 'Digite o valor (ex: 50.00)',
-                            hintStyle: GoogleFonts.poppins(color: const Color.fromARGB(255, 110, 110, 110)),
+                            hintStyle: GoogleFonts.poppins(color: Color.fromARGB(255, 110, 110, 110)),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                             prefixText: 'R\$ ',
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -196,9 +214,23 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: MyBottomNavigationBar(
-        currentIndex: 1,
-        onTap: _onTap,
+      bottomNavigationBar: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          AnimatedBuilder(
+            animation: _waveAnimationController,
+            builder: (context, child) {
+              return CustomPaint(
+                painter: WavePainter(_waveAnimationController.value),
+                size: const Size(double.infinity, 100),
+              );
+            },
+          ),
+          MyBottomNavigationBar(
+            currentIndex: 1, // Aqui marca a aba de recarga
+            onTap: _onTap,
+          ),
+        ],
       ),
     );
   }
