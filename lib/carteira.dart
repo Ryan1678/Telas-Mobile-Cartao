@@ -1,30 +1,21 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'login.dart'; // Onde está MobileUser
 
 class CarteiraScreen extends StatefulWidget {
-  const CarteiraScreen({super.key});
+  final MobileUser user; // Recebe o usuário logado
+  const CarteiraScreen({super.key, required this.user});
 
   @override
   State<CarteiraScreen> createState() => _CarteiraScreenState();
 }
 
-class _CarteiraScreenState extends State<CarteiraScreen> with SingleTickerProviderStateMixin {
-  final List<Map<String, dynamic>> cartoes = [
-    {
-      'nome': 'João da Silva',
-      'numero': '**** **** **** 1234',
-      'id': '001-AB',
-      'data': DateTime.now(),
-      'saldo': '150.00',
-    },
-    {
-      'nome': 'Maria Oliveira',
-      'numero': '**** **** **** 5678',
-      'id': '002-CD',
-      'data': DateTime.now(),
-      'saldo': '250.00',
-    },
-  ];
+class _CarteiraScreenState extends State<CarteiraScreen>
+    with SingleTickerProviderStateMixin {
+  List<Map<String, dynamic>> cartoes = [];
 
   late AnimationController animController;
   late Animation<Offset> animation;
@@ -36,10 +27,11 @@ class _CarteiraScreenState extends State<CarteiraScreen> with SingleTickerProvid
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    animation = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
+    animation = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero)
+        .animate(
       CurvedAnimation(parent: animController, curve: Curves.easeOut),
     );
-    animController.forward();
+    _carregarCartoes();
   }
 
   @override
@@ -48,12 +40,48 @@ class _CarteiraScreenState extends State<CarteiraScreen> with SingleTickerProvid
     super.dispose();
   }
 
-  void _editarNome(int index) {
+  // URL do backend (kIsWeb para Web, 10.0.2.2 para emulador Android)
+  String getBackendUrl() {
+    if (kIsWeb) {
+      return "http://localhost:8080/api/cartao";
+    } else {
+      return "http://10.0.2.2:8080/api/cartao";
+    }
+  }
+
+  // Carregar cartões do usuário
+  Future<void> _carregarCartoes() async {
+    try {
+      final url = Uri.parse("${getBackendUrl()}/${widget.user.id}");
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          cartoes = data.map((c) => {
+                'id': c['id'],
+                'nome': c['nome'],
+                'numero': c['numero'],
+                'saldo': c['saldo'],
+                'data': DateTime.parse(c['dataCadastro']),
+              }).toList();
+          animController.forward(from: 0);
+        });
+      } else {
+        debugPrint("Erro ao carregar cartões: ${response.body}");
+      }
+    } catch (e) {
+      debugPrint("Erro ao carregar cartões: $e");
+    }
+  }
+
+  // Editar nome do cartão
+  Future<void> _editarNome(int index) async {
     final controller = TextEditingController(text: cartoes[index]['nome']);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Editar Nome', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        title: Text('Editar Nome',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         content: TextField(
           controller: controller,
           decoration: InputDecoration(
@@ -70,11 +98,25 @@ class _CarteiraScreenState extends State<CarteiraScreen> with SingleTickerProvid
               backgroundColor: Colors.pink.shade500,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            onPressed: () {
-              setState(() {
-                cartoes[index]['nome'] = controller.text;
-              });
-              Navigator.pop(context);
+            onPressed: () async {
+              final novoNome = controller.text.trim();
+              if (novoNome.isEmpty) return;
+
+              final url = Uri.parse("${getBackendUrl()}/${cartoes[index]['id']}");
+              final response = await http.put(
+                url,
+                headers: {"Content-Type": "application/json"},
+                body: jsonEncode({"nome": novoNome}),
+              );
+
+              if (response.statusCode == 200) {
+                setState(() {
+                  cartoes[index]['nome'] = novoNome;
+                });
+                Navigator.pop(context);
+              } else {
+                debugPrint("Erro ao atualizar nome: ${response.body}");
+              }
             },
             child: Text('Salvar', style: GoogleFonts.poppins(color: Colors.white)),
           ),
@@ -83,12 +125,15 @@ class _CarteiraScreenState extends State<CarteiraScreen> with SingleTickerProvid
     );
   }
 
-  void _deletarCartao(int index) {
+  // Deletar cartão
+  Future<void> _deletarCartao(int index) async {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Excluir Cartão', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-        content: Text('Deseja realmente excluir este cartão?', style: GoogleFonts.poppins()),
+        title: Text('Excluir Cartão',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        content: Text('Deseja realmente excluir este cartão?',
+            style: GoogleFonts.poppins()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -99,11 +144,18 @@ class _CarteiraScreenState extends State<CarteiraScreen> with SingleTickerProvid
               backgroundColor: Colors.red.shade400,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            onPressed: () {
-              setState(() {
-                cartoes.removeAt(index);
-              });
-              Navigator.pop(context);
+            onPressed: () async {
+              final url = Uri.parse("${getBackendUrl()}/${cartoes[index]['id']}");
+              final response = await http.delete(url);
+
+              if (response.statusCode == 204) {
+                setState(() {
+                  cartoes.removeAt(index);
+                });
+                Navigator.pop(context);
+              } else {
+                debugPrint("Erro ao deletar cartão: ${response.body}");
+              }
             },
             child: Text('Deletar', style: GoogleFonts.poppins(color: Colors.white)),
           ),
@@ -141,34 +193,17 @@ class _CarteiraScreenState extends State<CarteiraScreen> with SingleTickerProvid
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  cartao['numero'],
+                  '**** **** **** ${cartao['numero'].substring(12)}',
                   style: GoogleFonts.poppins(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    letterSpacing: 2,
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  'Nome: ${cartao['nome']}',
-                  style: GoogleFonts.poppins(fontSize: 16, color: Colors.white),
-                ),
-                Text(
-                  'ID: ${cartao['id']}',
-                  style: GoogleFonts.poppins(color: Colors.white70),
-                ),
-                Text(
-                  'Criado em: ${cartao['data'].toString().substring(0, 16)}',
-                  style: GoogleFonts.poppins(color: Colors.white70),
-                ),
-                Text(
-                  'Saldo: R\$ ${cartao['saldo']}',
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
+                Text('Nome: ${cartao['nome']}', style: GoogleFonts.poppins(fontSize: 16, color: Colors.white)),
+                Text('Saldo: R\$ ${cartao['saldo'].toStringAsFixed(2)}',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -180,7 +215,6 @@ class _CarteiraScreenState extends State<CarteiraScreen> with SingleTickerProvid
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.pink.shade500,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -191,7 +225,6 @@ class _CarteiraScreenState extends State<CarteiraScreen> with SingleTickerProvid
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red.shade400,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
                     ),
                   ],
@@ -208,10 +241,7 @@ class _CarteiraScreenState extends State<CarteiraScreen> with SingleTickerProvid
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Minha Carteira',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.pink.shade600),
-        ),
+        title: Text('Minha Carteira', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.pink.shade600)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.pink.shade400),

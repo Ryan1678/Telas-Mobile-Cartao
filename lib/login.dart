@@ -7,6 +7,28 @@ import 'esqueceusenha.dart';
 import 'Apresentação.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+class MobileUser {
+  final int id;
+  final String nome;
+  final String email;
+  final String nivelAcesso;
+  final String? tipoCliente;
+  final String? telefone;
+  final String? documento;
+  final String? statusCliente;
+
+  MobileUser({
+    required this.id,
+    required this.nome,
+    required this.email,
+    required this.nivelAcesso,
+    this.tipoCliente,
+    this.telefone,
+    this.documento,
+    this.statusCliente,
+  });
+}
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -45,15 +67,29 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final response = await http.post(
         url,
-        headers: {"Content-Type": "application/json"},
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
         body: jsonEncode(payload),
       );
 
-      // Decodifica o JSON do backend
-      final data = jsonDecode(response.body);
-
       if (response.statusCode == 200) {
-        // Login válido
+        // Decodifica o JSON do backend
+        final data = jsonDecode(response.body);
+
+        // Cria o usuário logado
+        final user = MobileUser(
+          id: data['id'],
+          nome: data['nome'],
+          email: data['email'],
+          nivelAcesso: data['nivelAcesso'],
+          tipoCliente: data['tipoCliente'],
+          telefone: data['telefone'],
+          documento: data['documento'],
+          statusCliente: data['statusCliente'],
+        );
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Login realizado com sucesso!'),
@@ -61,12 +97,14 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
 
+        // Navega para a PresentationScreen passando o usuário
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const PresentationScreen()),
+          MaterialPageRoute(builder: (context) => PresentationScreen(user: user)),
         );
-      } else if (response.statusCode == 401 || response.statusCode == 403) {
-        // Erro: credenciais inválidas ou acesso negado
+      } else {
+        // Erros de autenticação ou acesso
+        final data = response.body.isNotEmpty ? jsonDecode(response.body) : {};
         final errorMsg = data['error'] ?? 'Erro ao realizar login.';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -74,17 +112,8 @@ class _LoginScreenState extends State<LoginScreen> {
             backgroundColor: Colors.red,
           ),
         );
-      } else {
-        // Outros erros inesperados
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro inesperado: ${response.statusCode}'),
-            backgroundColor: Colors.red,
-          ),
-        );
       }
     } catch (e) {
-      // Erro de conexão
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erro ao conectar com o servidor: $e'),

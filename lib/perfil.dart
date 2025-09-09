@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'main.dart';
-import 'carteira.dart';
-import 'termos_uso.dart';
-import 'configurações.dart';
 import 'cartao_virtual.dart';
 import 'solicitarRecarga.dart';
+import 'configurações.dart';
+import 'carteira.dart';
+import 'termos_uso.dart';
 import 'faleconosco.dart';
+import 'main.dart';
+import 'login.dart'; // Onde está MobileUser
 
-// PerfilScreen agora também tem animação de ondas
 class PerfilScreen extends StatefulWidget {
-  const PerfilScreen({super.key});
+  final MobileUser user; // Recebe o usuário logado
+  const PerfilScreen({super.key, required this.user});
 
   @override
   State<PerfilScreen> createState() => _PerfilScreenState();
@@ -35,18 +36,18 @@ class _PerfilScreenState extends State<PerfilScreen>
     super.dispose();
   }
 
-  void _onTap(BuildContext context, int index) {
+  void _onTap(BuildContext context, int index, MobileUser user) {
     if (index != 2) {
       Widget screen;
       switch (index) {
         case 0:
-          screen = const CartaoVirtualScreen();
+          screen = CartaoVirtualScreen(user: user);
           break;
         case 1:
-          screen = const SolicitarRecargaScreen();
+          screen = SolicitarRecargaScreen(user: user);
           break;
         default:
-          screen = const CartaoVirtualScreen();
+          screen = CartaoVirtualScreen(user: user);
       }
       Navigator.pushReplacement(
         context,
@@ -122,7 +123,8 @@ class _PerfilScreenState extends State<PerfilScreen>
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const CartaoVirtualScreen()),
+              MaterialPageRoute(
+                  builder: (_) => CartaoVirtualScreen(user: widget.user)),
             );
           },
         ),
@@ -130,11 +132,7 @@ class _PerfilScreenState extends State<PerfilScreen>
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color(0xFFF8BBD0), // rosa mais forte no topo
-              Color(0xFFFFE4EC), // rosa clarinho
-              Colors.white // base branca
-            ],
+            colors: [Color(0xFFF8BBD0), Color(0xFFFFE4EC), Colors.white],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -156,16 +154,16 @@ class _PerfilScreenState extends State<PerfilScreen>
                 },
               ),
               _buildPerfilItem(
-                context: context,
-                icon: Icons.account_balance_wallet,
-                title: 'Minha Carteira',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const CarteiraScreen()),
-                  );
-                },
-              ),
+  context: context,
+  icon: Icons.account_balance_wallet,
+  title: 'Minha Carteira',
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => CarteiraScreen(user: widget.user)),
+    );
+  },
+),
               _buildPerfilItem(
                 context: context,
                 icon: Icons.description_outlined,
@@ -193,8 +191,7 @@ class _PerfilScreenState extends State<PerfilScreen>
                 icon: Icons.logout,
                 title: 'Fazer Logoff',
                 onTap: () {
-                  print('Usuário fez logoff');
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (_) => const FiebTechApp()),
                   );
@@ -217,8 +214,8 @@ class _PerfilScreenState extends State<PerfilScreen>
             },
           ),
           MyBottomNavigationBar(
-            currentIndex: 2, // Marca a aba Perfil
-            onTap: (index) => _onTap(context, index),
+            currentIndex: 2,
+            onTap: (index) => _onTap(context, index, widget.user),
           ),
         ],
       ),

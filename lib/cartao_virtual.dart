@@ -1,11 +1,16 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'perfil.dart';
 import 'solicitarRecarga.dart';
+import 'login.dart';
+import 'package:http/http.dart' as http;
 
 class CartaoVirtualScreen extends StatefulWidget {
-  const CartaoVirtualScreen({super.key});
+  final MobileUser user;
+  const CartaoVirtualScreen({super.key, required this.user});
 
   @override
   State<CartaoVirtualScreen> createState() => _CartaoVirtualScreenState();
@@ -19,68 +24,7 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen>
   bool _showForm = false;
 
   final List<AnimationController> _animControllers = [];
-
   late final AnimationController _waveAnimationController;
-
-  void _onTap(int index) {
-    switch (index) {
-      case 0:
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const SolicitarRecargaScreen()),
-        );
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const PerfilScreen()),
-        );
-        break;
-    }
-  }
-
-  void _criarCartaoAutomaticamente(String nome) {
-    final random = Random();
-    String numero = List.generate(16, (_) => random.nextInt(10)).join();
-    double saldo = (random.nextDouble() * 1000);
-    int id = random.nextInt(100000);
-
-    final cartao = {
-      'nome': nome,
-      'numero': numero,
-      'id': id,
-      'data': DateTime.now(),
-      'saldo': saldo.toStringAsFixed(2),
-    };
-
-    setState(() {
-      _cartoes.add(cartao);
-
-      final controller = AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 500),
-      );
-      _animControllers.add(controller);
-      controller.forward();
-
-      _showForm = false;
-      _nomeController.clear();
-    });
-  }
-
-  void _abrirFormulario() {
-    setState(() {
-      _showForm = true;
-    });
-  }
-
-  void _salvarFormulario() {
-    if (_formKey.currentState!.validate()) {
-      _criarCartaoAutomaticamente(_nomeController.text.trim());
-    }
-  }
 
   @override
   void initState() {
@@ -89,6 +33,8 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen>
       vsync: this,
       duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
+
+    _carregarCartoes();
   }
 
   @override
@@ -101,17 +47,140 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen>
     super.dispose();
   }
 
+  String getBackendUrl() {
+    if (kIsWeb) {
+      // Para Web use localhost ou o IP da sua máquina
+      return "http://localhost:8080/api/cartao";
+    } else {
+      // Para Mobile (emulador Android)
+      return "http://10.0.2.2:8080/api/cartao";
+    }
+  }
+
+  Future<void> _carregarCartoes() async {
+    try {
+      final url = Uri.parse("${getBackendUrl()}/${widget.user.id}");
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          _cartoes.clear();
+          _animControllers.clear();
+
+          for (var c in data) {
+            _cartoes.add({
+              'id': c['id'],
+              'nome': c['nome'],
+              'numero': c['numero'],
+              'saldo': c['saldo'],
+              'codigoResgate': c['codigoResgate'],
+              'data': DateTime.parse(c['dataCadastro']),
+            });
+
+            final controller = AnimationController(
+              vsync: this,
+              duration: const Duration(milliseconds: 500),
+            );
+            _animControllers.add(controller);
+            controller.forward();
+          }
+        });
+      } else {
+        debugPrint("Erro ao carregar cartões: ${response.body}");
+      }
+    } catch (e) {
+      debugPrint("Erro ao carregar cartões: $e");
+    }
+  }
+
+  Future<void> _criarCartao(String nome) async {
+    final payload = {
+      "nome": nome,
+      "usuarioId": widget.user.id.toString(),
+    };
+
+    try {
+      final url = Uri.parse(getBackendUrl());
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _nomeController.clear();
+        setState(() {
+          _showForm = false;
+        });
+        _carregarCartoes();
+      } else {
+        debugPrint("Erro ao criar cartão: ${response.body}");
+      }
+    } catch (e) {
+      debugPrint("Erro ao criar cartão: $e");
+    }
+  }
+
+  Future<void> _gerarNovoCodigo(int index) async {
+    final cartaoId = _cartoes[index]['id'];
+    try {
+      final url = Uri.parse("${getBackendUrl()}/retirada/$cartaoId");
+      final response = await http.post(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _cartoes[index]['codigoResgate'] = data['codigoResgate'];
+        });
+      } else {
+        debugPrint("Erro ao gerar novo código: ${response.body}");
+      }
+    } catch (e) {
+      debugPrint("Erro ao gerar novo código: $e");
+    }
+  }
+
+  void _salvarFormulario() {
+    if (_formKey.currentState!.validate()) {
+      _criarCartao(_nomeController.text.trim());
+    }
+  }
+
+  void _onTap(int index) {
+    Widget screen;
+    switch (index) {
+      case 0:
+        screen = CartaoVirtualScreen(user: widget.user);
+        break;
+      case 1:
+        screen = SolicitarRecargaScreen(user: widget.user);
+        break;
+      case 2:
+        screen = PerfilScreen(user: widget.user);
+        break;
+      default:
+        screen = CartaoVirtualScreen(user: widget.user);
+    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => screen),
+    );
+  }
+
+  void _abrirFormulario() {
+    setState(() {
+      _showForm = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color(0xFFF8BBD0),
-              Color(0xFFFFE4EC),
-              Colors.white
-            ],
+            colors: [Color(0xFFF8BBD0), Color(0xFFFFE4EC), Colors.white],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -230,8 +299,7 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen>
                               child: SlideTransition(
                                 position: animation,
                                 child: Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 8),
+                                  margin: const EdgeInsets.symmetric(vertical: 8),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
@@ -253,8 +321,7 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen>
                                   child: Padding(
                                     padding: const EdgeInsets.all(16),
                                     child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           cartao['nome'],
@@ -275,21 +342,45 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen>
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          'ID: ${cartao['id']}',
-                                          style: GoogleFonts.poppins(
-                                              color: Colors.white70),
-                                        ),
-                                        Text(
-                                          'Criado em: ${cartao['data'].toString().substring(0, 16)}',
-                                          style: GoogleFonts.poppins(
-                                              color: Colors.white70),
-                                        ),
-                                        Text(
-                                          'Saldo: R\$ ${cartao['saldo']}',
+                                          'Saldo: R\$ ${cartao['saldo'].toStringAsFixed(2)}',
                                           style: GoogleFonts.poppins(
                                             fontWeight: FontWeight.w600,
                                             color: Colors.white,
                                           ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    if (cartao['codigoResgate'] != null && cartao['codigoResgate'] != "")
+      Text(
+        'Código de Resgate: ${cartao['codigoResgate']}',
+        style: GoogleFonts.poppins(
+          color: Colors.white70,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    ElevatedButton(
+      onPressed: () => _gerarNovoCodigo(index),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white24,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: Text(
+        'Retirar Saldo',
+        style: GoogleFonts.poppins(
+          color: Colors.white,
+          fontSize: 12,
+        ),
+      ),
+    ),
+  ],
+),
+                                        Text(
+                                          'Criado em: ${cartao['data'].toString().substring(0, 16)}',
+                                          style: GoogleFonts.poppins(color: Colors.white70),
                                         ),
                                       ],
                                     ),
@@ -341,9 +432,7 @@ class MyBottomNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 36, vertical: 12),
-      decoration: const BoxDecoration(
-        color: Colors.transparent,
-      ),
+      decoration: const BoxDecoration(color: Colors.transparent),
       child: BottomNavigationBar(
         selectedItemColor: Colors.pinkAccent.shade400,
         unselectedItemColor: Colors.grey.shade500,
@@ -373,10 +462,8 @@ class MyBottomNavigationBar extends StatelessWidget {
   }
 }
 
-// CustomPainter para desenhar as ondas
 class WavePainter extends CustomPainter {
   final double animationValue;
-
   WavePainter(this.animationValue);
 
   @override

@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'cartao_virtual.dart';
 import 'perfil.dart';
+import 'login.dart'; // MobileUser
 
 class SolicitarRecargaScreen extends StatefulWidget {
-  const SolicitarRecargaScreen({super.key});
+  final MobileUser user;
+  const SolicitarRecargaScreen({super.key, required this.user});
 
   @override
-  State<SolicitarRecargaScreen> createState() => _SolicitarRecargaScreenState();
+  State<SolicitarRecargaScreen> createState() =>
+      _SolicitarRecargaScreenState();
 }
 
 class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen>
@@ -16,7 +19,7 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen>
   String? selectedCardId;
   String valor = '';
 
-  final List<String> cartoesMock = ['001-AB', '002-CD', '003-EF']; // Mock dos cartões
+  final List<String> cartoesMock = ['001-AB', '002-CD', '003-EF'];
 
   late final AnimationController _waveAnimationController;
 
@@ -39,13 +42,13 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen>
     Widget screen;
     switch (index) {
       case 0:
-        screen = const CartaoVirtualScreen();
+        screen = CartaoVirtualScreen(user: widget.user);
         break;
       case 2:
-        screen = const PerfilScreen();
+        screen = PerfilScreen(user: widget.user);
         break;
       default:
-        screen = const CartaoVirtualScreen();
+        screen = CartaoVirtualScreen(user: widget.user);
     }
     Navigator.pushReplacement(
       context,
@@ -58,13 +61,12 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Solicitação de recarga de R\$ $valor enviada para o cartão $selectedCardId. Aguarde a confirmação do admin.',
+            'Solicitação de recarga de R\$ $valor enviada para o cartão $selectedCardId.',
           ),
           backgroundColor: Colors.pink.shade400,
         ),
       );
 
-      // Resetar o form
       setState(() {
         selectedCardId = null;
         valor = '';
@@ -79,11 +81,7 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen>
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color(0xFFF8BBD0),
-              Color(0xFFFFE4EC),
-              Colors.white
-            ],
+            colors: [Color(0xFFF8BBD0), Color(0xFFFFE4EC), Colors.white],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -91,9 +89,9 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen>
         child: SafeArea(
           child: Column(
             children: [
-              // AppBar customizada
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   children: [
                     IconButton(
@@ -102,7 +100,9 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen>
                       onPressed: () {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (_) => const CartaoVirtualScreen()),
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  CartaoVirtualScreen(user: widget.user)),
                         );
                       },
                     ),
@@ -139,18 +139,19 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen>
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
                           decoration: InputDecoration(
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 14),
                           ),
-                          hint: Text(
-                            'Selecione o ID do cartão',
-                            style: GoogleFonts.poppins(),
-                          ),
+                          hint: Text('Selecione o ID do cartão',
+                              style: GoogleFonts.poppins()),
                           value: selectedCardId,
                           items: cartoesMock.map((id) {
                             return DropdownMenuItem(
                               value: id,
-                              child: Text('Cartão $id', style: GoogleFonts.poppins()),
+                              child: Text('Cartão $id',
+                                  style: GoogleFonts.poppins()),
                             );
                           }).toList(),
                           onChanged: (value) {
@@ -158,7 +159,8 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen>
                               selectedCardId = value;
                             });
                           },
-                          validator: (value) => value == null ? 'Selecione um cartão' : null,
+                          validator: (value) =>
+                              value == null ? 'Selecione um cartão' : null,
                         ),
                         const SizedBox(height: 24),
                         Text(
@@ -171,13 +173,17 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen>
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          keyboardType:
+                              const TextInputType.numberWithOptions(decimal: true),
                           decoration: InputDecoration(
                             hintText: 'Digite o valor (ex: 50.00)',
-                            hintStyle: GoogleFonts.poppins(color: Color.fromARGB(255, 110, 110, 110)),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                            hintStyle: GoogleFonts.poppins(
+                                color: const Color.fromARGB(255, 110, 110, 110)),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16)),
                             prefixText: 'R\$ ',
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 14),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) return 'Informe um valor';
@@ -192,7 +198,8 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen>
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.pink.shade400,
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30)),
                             elevation: 4,
                           ),
                           onPressed: _confirmarRecarga,
@@ -227,7 +234,7 @@ class _SolicitarRecargaScreenState extends State<SolicitarRecargaScreen>
             },
           ),
           MyBottomNavigationBar(
-            currentIndex: 1, // Aqui marca a aba de recarga
+            currentIndex: 1,
             onTap: _onTap,
           ),
         ],

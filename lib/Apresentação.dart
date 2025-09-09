@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'cartao_virtual.dart';
+import 'login.dart'; // onde está a MobileUser
 
 class PresentationScreen extends StatelessWidget {
-  const PresentationScreen({super.key});
+  final MobileUser user; // Recebe o MobileUser
+
+  const PresentationScreen({super.key, required this.user}); // Construtor atualizado
 
   @override
   Widget build(BuildContext context) {
@@ -43,13 +46,26 @@ class PresentationScreen extends StatelessWidget {
                       const SizedBox(height: 16),
 
                       Text(
-                        'Seja bem-vindo ao nosso aplicativo. Desfrute da rapidez para comprar o que quiser na instituição FIEB que você estuda.',
+                        'Seja bem-vindo, ${user.nome}! Desfrute da rapidez para comprar o que quiser na instituição FIEB que você estuda.',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           color: Colors.black54,
                         ),
                       ),
+
+                      // Exemplo: exibir dados adicionais do cliente se existirem
+                      if (user.tipoCliente != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            'Tipo Cliente: ${user.tipoCliente}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
                       const Spacer(),
 
                       ElevatedButton(
@@ -62,12 +78,10 @@ class PresentationScreen extends StatelessWidget {
                           ),
                         ),
                         onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const CartaoVirtualScreen(),
-                            ),
-                          );
+                           Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => CartaoVirtualScreen(user: user)),
+        );
                         },
                         child: Text(
                           'Próximo',
