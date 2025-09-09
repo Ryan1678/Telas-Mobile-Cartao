@@ -1,5 +1,8 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 
 class FaleConoscoScreen extends StatefulWidget {
   const FaleConoscoScreen({super.key});
@@ -14,16 +17,61 @@ class _FaleConoscoScreenState extends State<FaleConoscoScreen> {
   final _tituloController = TextEditingController();
   final _mensagemController = TextEditingController();
 
-  void _enviarFormulario() {
+  // Detecta a plataforma e retorna a URL correta
+  String getBackendUrl() {
+    if (kIsWeb) {
+      // Flutter Web
+      return "http://localhost:8080/mensagens";
+    } else {
+      // Android Emulator
+      return "http://10.0.2.2:8080/mensagens";
+      // Se for iOS Simulator, use "http://localhost:8080/mensagens"
+    }
+  }
+
+  Future<void> _enviarFormulario() async {
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mensagem enviada com sucesso!'),
-        backgroundColor: Colors.pink,
-        ),
-      );
-      _telefoneController.clear();
-      _tituloController.clear();
-      _mensagemController.clear();
+      final url = Uri.parse(getBackendUrl());
+
+      final body = jsonEncode({
+        "telefone": _telefoneController.text,
+        "titulo": _tituloController.text,
+        "texto": _mensagemController.text,
+      });
+
+      try {
+        final response = await http.post(
+          url,
+          headers: {"Content-Type": "application/json"},
+          body: body,
+        );
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Mensagem enviada com sucesso!"),
+              backgroundColor: Colors.pink,
+            ),
+          );
+          _telefoneController.clear();
+          _tituloController.clear();
+          _mensagemController.clear();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Erro ao enviar: ${response.statusCode}"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Falha na conexão: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

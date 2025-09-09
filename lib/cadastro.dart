@@ -1,5 +1,8 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'login.dart';
 
 class CadastroScreen extends StatefulWidget {
@@ -22,19 +25,70 @@ class _CadastroScreenState extends State<CadastroScreen> {
   String tipoCliente = 'Aluno';
   bool _obscureSenha = true;
 
-  void handleCadastro() {
+  // Detecta a plataforma e retorna a URL correta
+  String getBackendUrl() {
+    if (kIsWeb) {
+      return "http://localhost:8080/cadastro";
+    } else {
+      return "http://10.0.2.2:8080/cadastro";
+    }
+  }
+
+  Future<void> handleCadastro() async {
     if (!_formKey.currentState!.validate()) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cadastro realizado com sucesso!'),
-      backgroundColor: Colors.pink,
-      ),
-    );
+    // Converte data dd/MM/yyyy para yyyy-MM-dd
+    final parts = dataNascimentoController.text.split('/');
+    final dataFormatada = "${parts[2]}-${parts[1]}-${parts[0]}";
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
+    final url = Uri.parse(getBackendUrl());
+    final body = jsonEncode({
+      "nome": nomeController.text.trim(),
+      "email": emailController.text.trim(),
+      "senha": senhaController.text.trim(),
+      "dataNascimento": dataFormatada,
+      "tipoCliente": tipoCliente.toUpperCase(),
+      "documento": documentoController.text.trim(),
+      "telefone": telefoneController.text.trim(),
+    });
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: body,
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Cadastro realizado com sucesso!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Erro no cadastro: ${response.body}"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Falha na conexão: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -112,22 +166,17 @@ class _CadastroScreenState extends State<CadastroScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Nome
                       _buildLabel('Nome completo'),
                       TextFormField(
                         controller: nomeController,
                         decoration: _inputDecoration('João da Silva'),
                         style: GoogleFonts.poppins(),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Informe seu nome completo';
-                          }
-                          return null;
-                        },
+                        validator: (value) =>
+                            value == null || value.trim().isEmpty
+                                ? 'Informe seu nome completo'
+                                : null,
                       ),
                       const SizedBox(height: 16),
-
-                      // Email
                       _buildLabel('E-mail'),
                       TextFormField(
                         controller: emailController,
@@ -146,8 +195,6 @@ class _CadastroScreenState extends State<CadastroScreen> {
                         },
                       ),
                       const SizedBox(height: 16),
-
-                      // Senha
                       _buildLabel('Senha'),
                       TextFormField(
                         controller: senhaController,
@@ -176,8 +223,6 @@ class _CadastroScreenState extends State<CadastroScreen> {
                         },
                       ),
                       const SizedBox(height: 16),
-
-                      // Data de Nascimento
                       _buildLabel('Data de nascimento'),
                       TextFormField(
                         controller: dataNascimentoController,
@@ -189,16 +234,12 @@ class _CadastroScreenState extends State<CadastroScreen> {
                         ),
                         style: GoogleFonts.poppins(),
                         onTap: () => _selectDate(context),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Informe a data de nascimento';
-                          }
-                          return null;
-                        },
+                        validator: (value) =>
+                            value == null || value.trim().isEmpty
+                                ? 'Informe a data de nascimento'
+                                : null,
                       ),
                       const SizedBox(height: 16),
-
-                      // Tipo de Cliente
                       _buildLabel('Tipo de Cliente'),
                       DropdownButtonFormField<String>(
                         value: tipoCliente,
@@ -219,8 +260,6 @@ class _CadastroScreenState extends State<CadastroScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      // Documento
                       _buildLabel('Documento'),
                       TextFormField(
                         controller: documentoController,
@@ -228,16 +267,12 @@ class _CadastroScreenState extends State<CadastroScreen> {
                         style: GoogleFonts.poppins(),
                         decoration: _inputDecoration(
                             tipoCliente == 'Aluno' ? 'RM' : 'CPF'),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Informe o documento';
-                          }
-                          return null;
-                        },
+                        validator: (value) =>
+                            value == null || value.trim().isEmpty
+                                ? 'Informe o documento'
+                                : null,
                       ),
                       const SizedBox(height: 16),
-
-                      // Telefone
                       _buildLabel('Telefone'),
                       TextFormField(
                         controller: telefoneController,
@@ -256,8 +291,6 @@ class _CadastroScreenState extends State<CadastroScreen> {
                         },
                       ),
                       const SizedBox(height: 24),
-
-                      // Botão Cadastrar
                       ElevatedButton(
                         onPressed: handleCadastro,
                         style: ElevatedButton.styleFrom(
@@ -275,8 +308,6 @@ class _CadastroScreenState extends State<CadastroScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      // Botão Login
                       Center(
                         child: TextButton(
                           onPressed: () {

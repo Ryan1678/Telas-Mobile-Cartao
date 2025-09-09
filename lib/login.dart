@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'cadastro.dart';
 import 'esqueceusenha.dart';
 import 'Apresentação.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,20 +18,84 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _loading = false;
 
-  void handleLogin() {
+  // Detecta plataforma e retorna URL correta
+  String getBackendUrl() {
+    if (kIsWeb) {
+      return "http://localhost:8080/api/mobile/login";
+    } else {
+      return "http://10.0.2.2:8080/api/mobile/login";
+    }
+  }
+
+  Future<void> handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Login realizado com sucesso!'),
-      backgroundColor: Colors.pink,
-      ),
-    );
+    setState(() {
+      _loading = true;
+    });
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const PresentationScreen()),
-    );
+    final url = Uri.parse(getBackendUrl());
+    final payload = {
+      "email": emailController.text.trim(),
+      "senha": senhaController.text.trim(),
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(payload),
+      );
+
+      // Decodifica o JSON do backend
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        // Login válido
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login realizado com sucesso!'),
+            backgroundColor: Colors.pink,
+          ),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const PresentationScreen()),
+        );
+      } else if (response.statusCode == 401 || response.statusCode == 403) {
+        // Erro: credenciais inválidas ou acesso negado
+        final errorMsg = data['error'] ?? 'Erro ao realizar login.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        // Outros erros inesperados
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro inesperado: ${response.statusCode}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // Erro de conexão
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao conectar com o servidor: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
   }
 
   InputDecoration _inputDecoration(String hint) {
@@ -123,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton(
-                        onPressed: handleLogin,
+                        onPressed: _loading ? null : handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.pinkAccent.shade200,
                           padding: const EdgeInsets.symmetric(vertical: 18),
@@ -131,14 +198,18 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(30),
                           ),
                         ),
-                        child: Text(
-                          'Entrar',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
+                        child: _loading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : Text(
+                                'Entrar',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                       const SizedBox(height: 16),
                       Center(
