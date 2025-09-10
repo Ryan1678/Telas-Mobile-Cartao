@@ -142,17 +142,19 @@ class _PerfilScreenState extends State<PerfilScreen>
           child: ListView(
             children: [
               _buildPerfilItem(
-                context: context,
-                icon: Icons.settings,
-                title: 'Configurações do perfil',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const ConfiguracoesPerfilScreen()),
-                  );
-                },
-              ),
+  context: context,
+  icon: Icons.settings,
+  title: 'Configurações do perfil',
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ConfiguracoesPerfilScreen(user: widget.user),
+      ),
+    );
+  },
+),
+
               _buildPerfilItem(
   context: context,
   icon: Icons.account_balance_wallet,

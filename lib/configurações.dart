@@ -1,8 +1,13 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'login.dart'; // MobileUser
 
 class ConfiguracoesPerfilScreen extends StatefulWidget {
-  const ConfiguracoesPerfilScreen({super.key});
+  final MobileUser user;
+  const ConfiguracoesPerfilScreen({super.key, required this.user});
 
   @override
   State<ConfiguracoesPerfilScreen> createState() =>
@@ -10,66 +15,113 @@ class ConfiguracoesPerfilScreen extends StatefulWidget {
 }
 
 class _ConfiguracoesPerfilScreenState extends State<ConfiguracoesPerfilScreen> {
-  bool editando = false;
   final _formKey = GlobalKey<FormState>();
 
-  final nomeController = TextEditingController(text: 'João da Silva');
-  final nascimentoController = TextEditingController(text: '15/04/2005');
-  final tipoClienteController = TextEditingController(text: 'Aluno');
-  final documentoController = TextEditingController(text: '123456'); // URM ou CPF
-  final telefoneController = TextEditingController(text: '(11) 91234-5678');
-  final emailController = TextEditingController(text: 'joao@email.com');
-  final senhaController = TextEditingController(text: '123456');
+  final nomeController = TextEditingController();
+  final nascimentoController = TextEditingController();
+  final tipoClienteController = TextEditingController();
+  final documentoController = TextEditingController();
+  final telefoneController = TextEditingController();
+  final emailController = TextEditingController();
+  final senhaController = TextEditingController();
 
-  String formatarData(DateTime data) {
-    final dia = data.day.toString().padLeft(2, '0');
-    final mes = data.month.toString().padLeft(2, '0');
-    final ano = data.year.toString();
-    return '$dia/$mes/$ano';
+  bool carregando = true;
+
+  String get apiBaseUrl {
+    if (kIsWeb) {
+      return "http://localhost:8080/cadastro"; // web
+    } else {
+      return "http://10.0.2.2:8080/cadastro"; // Android emulator
+    }
   }
 
-  DateTime? parseData(String texto) {
+  @override
+  void initState() {
+    super.initState();
+    _carregarUsuario();
+  }
+
+  Future<void> _carregarUsuario() async {
     try {
-      final partes = texto.split('/');
-      if (partes.length != 3) return null;
-      final dia = int.parse(partes[0]);
-      final mes = int.parse(partes[1]);
-      final ano = int.parse(partes[2]);
-      return DateTime(ano, mes, dia);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  void salvarAlteracoes() {
-    if (_formKey.currentState!.validate()) {
+      final response = await http.get(Uri.parse("$apiBaseUrl/${widget.user.id}"));
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> usuarioData = json.decode(response.body);
+        setState(() {
+          nomeController.text = usuarioData['usuario']['nome'] ?? '';
+          emailController.text = usuarioData['usuario']['email'] ?? '';
+          senhaController.text = usuarioData['usuario']['senha'] ?? '';
+          tipoClienteController.text = usuarioData['cliente']['tipoCliente'] ?? '';
+          documentoController.text = usuarioData['cliente']['documento'] ?? '';
+          telefoneController.text = usuarioData['cliente']['telefone'] ?? '';
+          nascimentoController.text = usuarioData['cliente']['dataNascimento'] ?? '';
+          carregando = false;
+        });
+      } else {
+        throw Exception("Erro ao carregar usuário");
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Informações atualizadas com sucesso!')),
+        SnackBar(content: Text("Falha ao carregar usuário: $e")),
       );
-      setState(() {
-        editando = false;
-      });
     }
   }
 
-  Future<void> selecionarDataNascimento() async {
-    DateTime dataInicial =
-        parseData(nascimentoController.text) ?? DateTime(2005, 1, 1);
+  Future<void> _salvarAlteracoes() async {
+    if (!_formKey.currentState!.validate()) return;
 
-    final DateTime? dataSelecionada = await showDatePicker(
-      context: context,
-      initialDate: dataInicial,
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      helpText: 'Selecione sua data de nascimento',
-    );
+    final Map<String, dynamic> dadosAtualizados = {
+      "nome": nomeController.text,
+      "email": emailController.text,
+      "senha": senhaController.text,
+      "tipoCliente": tipoClienteController.text,
+      "documento": documentoController.text,
+      "telefone": telefoneController.text,
+      "dataNascimento": nascimentoController.text,
+    };
 
-    if (dataSelecionada != null) {
-      nascimentoController.text = formatarData(dataSelecionada);
+    try {
+      final response = await http.put(
+        Uri.parse("$apiBaseUrl/${widget.user.id}"),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode(dadosAtualizados),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Alterações salvas com sucesso!')),
+        );
+      } else {
+        throw Exception("Erro ao atualizar usuário");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Falha ao atualizar: $e")),
+      );
     }
   }
 
-  Widget _buildCampo({required String label, required Widget child}) {
+  Future<void> _deletarUsuario() async {
+    try {
+      final response = await http.delete(
+        Uri.parse("$apiBaseUrl/${widget.user.id}"),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Conta deletada com sucesso!')),
+        );
+        Navigator.pushReplacementNamed(context, "/login");
+      } else {
+        throw Exception("Erro ao deletar usuário");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Falha ao deletar: $e")),
+      );
+    }
+  }
+
+  Widget _buildCampo({required String label, required TextEditingController controller, bool obscure = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -86,35 +138,30 @@ class _ConfiguracoesPerfilScreenState extends State<ConfiguracoesPerfilScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: child,
+          child: TextFormField(
+            controller: controller,
+            obscureText: obscure,
+            style: GoogleFonts.poppins(color: Colors.white),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+            ),
+            validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
+          ),
         ),
         const SizedBox(height: 20),
       ],
     );
   }
 
-  Widget _buildVisualizacao(String label, String valor) {
-    return _buildCampo(
-      label: label,
-      child: TextFormField(
-        initialValue: valor,
-        enabled: false,
-        readOnly: true,
-        style: GoogleFonts.poppins(fontSize: 16, color: Colors.white),
-        decoration: const InputDecoration(
-          border: InputBorder.none,
-          disabledBorder: InputBorder.none,
-          isDense: true,
-          contentPadding: EdgeInsets.symmetric(vertical: 14),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    if (carregando) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
-     // Fundo gradiente
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -122,225 +169,64 @@ class _ConfiguracoesPerfilScreenState extends State<ConfiguracoesPerfilScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
               child: Column(
                 children: [
-                  // Botão voltar
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new,
-                          color: Colors.white),
+                      icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  Text(
-                    'Configurações do Perfil',
-                    style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  Text('Configurações do Perfil',
+                      style: GoogleFonts.poppins(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white)),
                   const SizedBox(height: 30),
 
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      children: editando
-                          ? [
-                              _buildCampo(
-                                label: 'Nome completo',
-                                child: TextFormField(
-                                  controller: nomeController,
-                                  decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: 'Digite seu nome',
-                                    hintStyle: GoogleFonts.poppins(
-                                        color: Colors.white70),
-                                  ),
-                                  style: GoogleFonts.poppins(color: Colors.white),
-                                  validator: (value) =>
-                                      value!.trim().isEmpty ? 'Informe seu nome' : null,
-                                ),
-                              ),
-                              _buildCampo(
-                                label: 'E-mail',
-                                child: TextFormField(
-                                  controller: emailController,
-                                  keyboardType: TextInputType.emailAddress,
-                                  decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: 'exemplo@email.com',
-                                    hintStyle: GoogleFonts.poppins(
-                                        color: Colors.white70),
-                                  ),
-                                  style: GoogleFonts.poppins(color: Colors.white),
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Informe seu e-mail';
-                                    }
-                                    if (!RegExp(
-                                            r'^[\w\-.]+@([\w-]+\.)+[\w]{2,4}$')
-                                        .hasMatch(value)) {
-                                      return 'E-mail inválido';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              _buildCampo(
-                                label: 'Senha',
-                                child: TextFormField(
-                                  controller: senhaController,
-                                  obscureText: true,
-                                  decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: '••••••',
-                                    hintStyle:
-                                        GoogleFonts.poppins(color: Colors.white70),
-                                  ),
-                                  style: GoogleFonts.poppins(color: Colors.white),
-                                  validator: (value) => value!.length < 6
-                                      ? 'Mínimo 6 caracteres'
-                                      : null,
-                                ),
-                              ),
-                              _buildCampo(
-                                label: 'Data de nascimento',
-                                child: TextFormField(
-                                  controller: nascimentoController,
-                                  readOnly: true,
-                                  onTap: selecionarDataNascimento,
-                                  decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    suffixIcon: const Icon(Icons.calendar_today,
-                                        color: Colors.white),
-                                  ),
-                                  style: GoogleFonts.poppins(color: Colors.white),
-                                  validator: (value) {
-                                    if (parseData(value ?? '') == null) {
-                                      return 'Data inválida';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              _buildCampo(
-                                label: 'Tipo de Cliente',
-                                child: DropdownButtonFormField<String>(
-                                  value: tipoClienteController.text,
-                                  items: const [
-                                    DropdownMenuItem(
-                                        value: 'Aluno', child: Text('Aluno')),
-                                    DropdownMenuItem(
-                                        value: 'Responsável',
-                                        child: Text('Responsável')),
-                                    DropdownMenuItem(
-                                        value: 'Professor',
-                                        child: Text('Professor')),
-                                  ],
-                                  onChanged: (value) {
-                                    setState(() {
-                                      tipoClienteController.text = value ?? 'Aluno';
-                                      documentoController.text =
-                                          (tipoClienteController.text == 'Aluno')
-                                              ? '123456'
-                                              : '00000000000';
-                                    });
-                                  },
-                                  decoration: const InputDecoration(border: InputBorder.none),
-                                  style: GoogleFonts.poppins(color: Colors.white),
-                                  dropdownColor: Colors.pink.shade300,
-                                ),
-                              ),
-                              _buildCampo(
-                                label: tipoClienteController.text == 'Aluno'
-                                    ? 'RM'
-                                    : 'CPF',
-                                child: TextFormField(
-                                  controller: documentoController,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: tipoClienteController.text == 'Aluno'
-                                        ? 'Digite seu RM'
-                                        : 'Digite seu CPF',
-                                    hintStyle: GoogleFonts.poppins(color: Colors.white70),
-                                  ),
-                                  style: GoogleFonts.poppins(color: Colors.white),
-                                  validator: (value) =>
-                                      value!.isEmpty ? 'Informe o documento' : null,
-                                ),
-                              ),
-                              _buildCampo(
-                                label: 'Telefone',
-                                child: TextFormField(
-                                  controller: telefoneController,
-                                  keyboardType: TextInputType.phone,
-                                  decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: '(11) 91234-5678',
-                                    hintStyle: GoogleFonts.poppins(color: Colors.white70),
-                                  ),
-                                  style: GoogleFonts.poppins(color: Colors.white),
-                                  validator: (value) =>
-                                      value!.isEmpty ? 'Informe seu telefone' : null,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: salvarAlteracoes,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.pinkAccent,
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                  ),
-                                  child: Text('Salvar Alterações',
-                                      style: GoogleFonts.poppins(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600)),
-                                ),
-                              ),
-                            ]
-                          : [
-                              _buildVisualizacao('Nome completo', nomeController.text),
-                              _buildVisualizacao('E-mail', emailController.text),
-                              _buildVisualizacao('Senha', '••••••'),
-                              _buildVisualizacao('Data de nascimento', nascimentoController.text),
-                              _buildVisualizacao('Tipo de cliente', tipoClienteController.text),
-                              _buildVisualizacao(
-                                  tipoClienteController.text == 'Aluno' ? 'RM' : 'CPF',
-                                  documentoController.text),
-                              _buildVisualizacao('Telefone', telefoneController.text),
-                            ],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                                    // Botão flutuante de edição no canto inferior direito
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: FloatingActionButton(
-                        backgroundColor: editando ? Colors.grey[300] : Colors.pinkAccent,
-                        onPressed: () => setState(() => editando = !editando),
-                        child: Icon(editando ? Icons.close : Icons.edit,
-                            color: Colors.white),
+                  _buildCampo(label: 'Nome completo', controller: nomeController),
+                  _buildCampo(label: 'E-mail', controller: emailController),
+                  _buildCampo(label: 'Senha', controller: senhaController, obscure: true),
+                  _buildCampo(label: 'Tipo de Cliente', controller: tipoClienteController),
+                  _buildCampo(label: tipoClienteController.text == 'Aluno' ? 'RM' : 'CPF', controller: documentoController),
+                  _buildCampo(label: 'Telefone', controller: telefoneController),
+                  _buildCampo(label: 'Data de nascimento', controller: nascimentoController),
+
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _salvarAlteracoes,
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.pinkAccent,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
+                          child: Text('Salvar Alterações',
+                              style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _deletarUsuario,
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
+                          child: Text('Deletar Conta',
+                              style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -351,5 +237,3 @@ class _ConfiguracoesPerfilScreenState extends State<ConfiguracoesPerfilScreen> {
     );
   }
 }
-
-                 
