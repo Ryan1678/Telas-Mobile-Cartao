@@ -49,10 +49,8 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen>
 
   String getBackendUrl() {
     if (kIsWeb) {
-      // Para Web use localhost ou o IP da sua máquina
       return "http://localhost:8080/api/cartao";
     } else {
-      // Para Mobile (emulador Android)
       return "http://10.0.2.2:8080/api/cartao";
     }
   }
@@ -172,6 +170,18 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen>
     setState(() {
       _showForm = true;
     });
+  }
+
+  // Função para mostrar todos os dígitos do cartão em blocos de 4
+  String formatarCartao(String numero) {
+    final buffer = StringBuffer();
+    for (int i = 0; i < numero.length; i++) {
+      buffer.write(numero[i]);
+      if ((i + 1) % 4 == 0 && i != numero.length - 1) {
+        buffer.write(' ');
+      }
+    }
+    return buffer.toString();
   }
 
   @override
@@ -328,12 +338,13 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen>
                                           style: GoogleFonts.poppins(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.white,
+                                                                                       color: Colors.white,
                                           ),
                                         ),
                                         const SizedBox(height: 6),
+                                        // Mostrando TODOS os dígitos do cartão
                                         Text(
-                                          '**** **** **** ${cartao['numero'].substring(12)}',
+                                          formatarCartao(cartao['numero']),
                                           style: GoogleFonts.poppins(
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
@@ -350,34 +361,36 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen>
                                         ),
                                         const SizedBox(height: 8),
                                         Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    if (cartao['codigoResgate'] != null && cartao['codigoResgate'] != "")
-      Text(
-        'Código de Resgate: ${cartao['codigoResgate']}',
-        style: GoogleFonts.poppins(
-          color: Colors.white70,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    ElevatedButton(
-      onPressed: () => _gerarNovoCodigo(index),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white24,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      child: Text(
-        'Retirar Saldo',
-        style: GoogleFonts.poppins(
-          color: Colors.white,
-          fontSize: 12,
-        ),
-      ),
-    ),
-  ],
-),
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            if (cartao['codigoResgate'] != null &&
+                                                cartao['codigoResgate'] != "")
+                                              Text(
+                                                'Código de Resgate: ${cartao['codigoResgate']}',
+                                                style: GoogleFonts.poppins(
+                                                  color: Colors.white70,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ElevatedButton(
+                                              onPressed: () => _gerarNovoCodigo(index),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.white24,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                              ),
+                                              child: Text(
+                                                'Retirar Saldo',
+                                                style: GoogleFonts.poppins(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
                                         Text(
                                           'Criado em: ${cartao['data'].toString().substring(0, 16)}',
                                           style: GoogleFonts.poppins(color: Colors.white70),
@@ -418,6 +431,7 @@ class _CartaoVirtualScreenState extends State<CartaoVirtualScreen>
   }
 }
 
+// Bottom navigation bar
 class MyBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -462,6 +476,7 @@ class MyBottomNavigationBar extends StatelessWidget {
   }
 }
 
+// Animação de onda
 class WavePainter extends CustomPainter {
   final double animationValue;
   WavePainter(this.animationValue);
@@ -515,3 +530,4 @@ class WavePainter extends CustomPainter {
   bool shouldRepaint(covariant WavePainter oldDelegate) =>
       oldDelegate.animationValue != animationValue;
 }
+
