@@ -40,7 +40,7 @@ class TermosUsoScreen extends StatelessWidget {
                 ),
                 _buildSectionTitle('2. Recarga e Pagamento'),
                 _buildSectionContent(
-                  'As recargas devem ser feitas através do aplicativo utilizando cartão de crédito, débito ou outros meios digitais disponibilizados. O saldo será creditado no cartão virtual do aluno para uso exclusivo na cantina da escola.',
+                  'As solicitações devem ser feitas através do aplicativo, e realizando o pagamento de forma presencial na secretaria escolar utilizando cartão de crédito, débito, pix ou dinheiro. O saldo será creditado no cartão virtual do aluno para uso exclusivo na cantina da escola.',
                 ),
                 _buildSectionTitle('3. Utilização do Saldo'),
                 _buildSectionContent(
