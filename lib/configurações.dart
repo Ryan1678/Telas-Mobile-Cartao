@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'login.dart'; // MobileUser
+import 'login.dart'; // MobileUser e LoginScreen
 
 class ConfiguracoesPerfilScreen extends StatefulWidget {
   final MobileUser user;
@@ -29,7 +29,7 @@ class _ConfiguracoesPerfilScreenState extends State<ConfiguracoesPerfilScreen> {
 
   String get apiBaseUrl {
     if (kIsWeb) {
-      return "http://localhost:8080/cadastro"; // web
+      return "http://localhost:8080/cadastro"; // Web
     } else {
       return "http://10.0.2.2:8080/cadastro"; // Android emulator
     }
@@ -49,7 +49,7 @@ class _ConfiguracoesPerfilScreenState extends State<ConfiguracoesPerfilScreen> {
         setState(() {
           nomeController.text = usuarioData['usuario']['nome'] ?? '';
           emailController.text = usuarioData['usuario']['email'] ?? '';
-          senhaController.text = usuarioData['usuario']['senha'] ?? '';
+          senhaController.text = '******'; // Sempre oculta
           tipoClienteController.text = usuarioData['cliente']['tipoCliente'] ?? '';
           documentoController.text = usuarioData['cliente']['documento'] ?? '';
           telefoneController.text = usuarioData['cliente']['telefone'] ?? '';
@@ -72,12 +72,16 @@ class _ConfiguracoesPerfilScreenState extends State<ConfiguracoesPerfilScreen> {
     final Map<String, dynamic> dadosAtualizados = {
       "nome": nomeController.text,
       "email": emailController.text,
-      "senha": senhaController.text,
       "tipoCliente": tipoClienteController.text,
       "documento": documentoController.text,
       "telefone": telefoneController.text,
       "dataNascimento": nascimentoController.text,
     };
+
+    // Atualiza senha apenas se foi digitada nova
+    if (senhaController.text != '******') {
+      dadosAtualizados["senha"] = senhaController.text;
+    }
 
     try {
       final response = await http.put(
@@ -110,7 +114,10 @@ class _ConfiguracoesPerfilScreenState extends State<ConfiguracoesPerfilScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Conta deletada com sucesso!')),
         );
-        Navigator.pushReplacementNamed(context, "/login");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
       } else {
         throw Exception("Erro ao deletar usuário");
       }
@@ -121,7 +128,11 @@ class _ConfiguracoesPerfilScreenState extends State<ConfiguracoesPerfilScreen> {
     }
   }
 
-  Widget _buildCampo({required String label, required TextEditingController controller, bool obscure = false}) {
+  Widget _buildCampo({
+    required String label,
+    required TextEditingController controller,
+    bool obscure = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -142,7 +153,7 @@ class _ConfiguracoesPerfilScreenState extends State<ConfiguracoesPerfilScreen> {
             controller: controller,
             obscureText: obscure,
             style: GoogleFonts.poppins(color: Colors.white),
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               border: InputBorder.none,
             ),
             validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
@@ -196,7 +207,9 @@ class _ConfiguracoesPerfilScreenState extends State<ConfiguracoesPerfilScreen> {
                   _buildCampo(label: 'E-mail', controller: emailController),
                   _buildCampo(label: 'Senha', controller: senhaController, obscure: true),
                   _buildCampo(label: 'Tipo de Cliente', controller: tipoClienteController),
-                  _buildCampo(label: tipoClienteController.text == 'Aluno' ? 'RM' : 'CPF', controller: documentoController),
+                  _buildCampo(
+                      label: tipoClienteController.text == 'Aluno' ? 'RM' : 'CPF',
+                      controller: documentoController),
                   _buildCampo(label: 'Telefone', controller: telefoneController),
                   _buildCampo(label: 'Data de nascimento', controller: nascimentoController),
 
